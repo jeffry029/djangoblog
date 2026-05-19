@@ -32,6 +32,8 @@
                 </div>
             </div>
 
+            {% include 'share_layout/api_promo.html' %}
+
             <div class="editorial-feed-list">
                 {% for article in article_list %}
                     {% load_article_detail article True user %}

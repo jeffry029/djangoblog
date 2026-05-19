@@ -12,6 +12,8 @@
                 </p>
             </div>
 
+            {% include 'share_layout/api_promo.html' %}
+
             <div class="editorial-feed-list">
                 {% for item in news_list %}
                     <article class="editorial-news-card group">
@@ -47,7 +49,7 @@
                     </article>
                 {% empty %}
                     <div class="rounded-lg border border-border/40 bg-card p-8 text-sm text-muted-foreground shadow-card">
-                        暂无新闻。运行 <code>python manage.py collect_aihot_news</code> 后会显示抓取结果。
+                        暂无新闻
                     </div>
                 {% endfor %}
             </div>

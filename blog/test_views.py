@@ -67,6 +67,15 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         response = self.assert_view_success(url)
         self.assertContains(response, self.article.title)
 
+    def test_index_view_shows_api_promo(self):
+        """测试首页显示 API 中转推广入口"""
+        response = self.client.get(reverse('blog:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'API 中转')
+        self.assertContains(response, '满血GPT-5.5 0.3R = 1$')
+        self.assertContains(response, '满血Claude opus 4.7 1R = 1$')
+        self.assertContains(response, 'https://api.zdabc.icu/')
+
     def test_index_view_pagination(self):
         """测试首页分页"""
         # 创建多篇文章以测试分页
@@ -122,6 +131,28 @@ class SearchViewTest(BaseTestCase, ViewTestMixin):
         except:
             # 如果搜索路由不存在，跳过
             pass
+
+
+class NewsViewTest(BaseTestCase, ViewTestMixin):
+    """测试新闻视图"""
+
+    def test_news_view_shows_api_promo(self):
+        """测试 AI 快讯页显示 API 中转推广入口"""
+        response = self.client.get(reverse('blog:news'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'API 中转')
+        self.assertContains(response, '满血GPT-5.5 0.3R = 1$')
+        self.assertContains(response, '满血Claude opus 4.7 1R = 1$')
+        self.assertContains(response, 'https://api.zdabc.icu/')
+
+    def test_news_empty_state_only_says_no_news(self):
+        """测试 AI 快讯空状态不展示管理命令"""
+        response = self.client.get(reverse('blog:news'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '暂无新闻')
+        self.assertNotContains(response, 'collect_aihot_news')
+        self.assertNotContains(response, 'python manage.py')
 
 
 class ArticlePermissionTest(BaseTestCase, ViewTestMixin):

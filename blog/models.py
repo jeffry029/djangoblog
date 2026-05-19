@@ -340,6 +340,37 @@ class NewsItem(models.Model):
         super().save(*args, **kwargs)
 
 
+class PublicTrafficDailyStat(models.Model):
+    """Aggregated public browser traffic for operational visibility."""
+
+    date = models.DateField('日期', db_index=True)
+    route_name = models.CharField('路由', max_length=40)
+    path = models.CharField('路径', max_length=255)
+    ip_address = models.GenericIPAddressField('IP 地址', unpack_ipv4=True)
+    fingerprint = models.CharField('请求指纹', max_length=64)
+    user_agent = models.CharField('User-Agent', max_length=500, blank=True, default='')
+    visit_count = models.PositiveIntegerField('访问次数', default=0)
+    first_seen = models.DateTimeField('首次访问', default=now)
+    last_seen = models.DateTimeField('最近访问', default=now)
+
+    class Meta:
+        verbose_name = '公开访问统计'
+        verbose_name_plural = verbose_name
+        constraints = [
+            models.UniqueConstraint(
+                fields=['date', 'route_name', 'path', 'ip_address', 'fingerprint'],
+                name='uniq_public_traffic_daily_identity',
+            ),
+        ]
+        indexes = [
+            models.Index(fields=['date', 'route_name'], name='idx_traffic_date_route'),
+            models.Index(fields=['date', 'path'], name='idx_traffic_date_path'),
+        ]
+
+    def __str__(self):
+        return f'{self.date} {self.route_name} {self.ip_address} {self.visit_count}'
+
+
 class SideBar(models.Model):
     """侧边栏,可以展示一些html内容"""
     name = models.CharField(_('title'), max_length=100)

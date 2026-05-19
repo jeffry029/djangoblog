@@ -76,6 +76,38 @@ class PublicReadOnlyModeTests(SimpleTestCase):
         self.assertEqual(second.status_code, 200)
         self.assertEqual(third.status_code, 429)
 
+    @override_settings(
+        PUBLIC_RATE_LIMIT_PER_MINUTE=0,
+        PUBLIC_LIST_RATE_LIMIT_PER_MINUTE=2,
+        PUBLIC_FINGERPRINT_RATE_LIMIT_PER_MINUTE=0,
+    )
+    def test_list_route_rate_limit_returns_429(self):
+        first = self.middleware(self.factory.get('/news/'))
+        second = self.middleware(self.factory.get('/news/'))
+        third = self.middleware(self.factory.get('/news/'))
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(third.status_code, 429)
+
+    @override_settings(
+        PUBLIC_RATE_LIMIT_PER_MINUTE=0,
+        PUBLIC_LIST_RATE_LIMIT_PER_MINUTE=0,
+        PUBLIC_FINGERPRINT_RATE_LIMIT_PER_MINUTE=2,
+    )
+    def test_repeated_request_fingerprint_rate_limit_returns_429(self):
+        meta = {
+            'HTTP_USER_AGENT': 'curl/8.0',
+            'HTTP_ACCEPT': 'application/json',
+        }
+        first = self.middleware(self.factory.get('/search', {'q': 'ai'}, **meta))
+        second = self.middleware(self.factory.get('/search', {'q': 'ai'}, **meta))
+        third = self.middleware(self.factory.get('/search', {'q': 'ai'}, **meta))
+
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(second.status_code, 200)
+        self.assertEqual(third.status_code, 429)
+
     def test_robots_txt_is_public(self):
         response = Client().get('/robots.txt')
         self.assertEqual(response.status_code, 200)

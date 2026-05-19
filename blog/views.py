@@ -4,10 +4,12 @@ import uuid
 
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.http import HttpResponse, HttpResponseForbidden
+from django.db.models import Sum
+from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.templatetags.static import static
+from django.utils.dateparse import parse_date
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.csrf import csrf_exempt
@@ -15,7 +17,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from haystack.views import SearchView
 
-from blog.models import Article, Category, LinkShowType, Links, NewsItem, Tag
+from blog.models import Article, Category, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
 from djangoblog.utils import cache, get_blog_setting, get_sha256
@@ -103,6 +105,52 @@ class NewsListView(ListView):
         context['seo_keywords'] = f"技术新闻,AI新闻,{blog_setting.site_keywords}"
         context['linktype'] = LinkShowType.L
         return context
+
+
+def public_traffic_stats_view(request):
+    configured_token = getattr(settings, 'PUBLIC_TRAFFIC_STATS_TOKEN', '')
+    supplied_token = request.GET.get('token') or request.headers.get('X-Traffic-Stats-Token')
+    if not configured_token or supplied_token != configured_token:
+        raise Http404()
+
+    stats = PublicTrafficDailyStat.objects.all()
+    exact_date = parse_date(request.GET.get('date') or '')
+    start_date = parse_date(request.GET.get('start') or '')
+    end_date = parse_date(request.GET.get('end') or '')
+
+    if exact_date:
+        stats = stats.filter(date=exact_date)
+    else:
+        if start_date:
+            stats = stats.filter(date__gte=start_date)
+        if end_date:
+            stats = stats.filter(date__lte=end_date)
+
+    try:
+        limit = int(request.GET.get('limit', '100'))
+    except ValueError:
+        limit = 100
+    limit = max(1, min(limit, 1000))
+
+    rows = list(stats.order_by('-date', '-visit_count', '-last_seen')[:limit])
+    total = stats.aggregate(total=Sum('visit_count'))['total'] or 0
+    return JsonResponse({
+        'total_visits': total,
+        'rows': [
+            {
+                'date': row.date.isoformat(),
+                'route_name': row.route_name,
+                'path': row.path,
+                'ip_address': row.ip_address,
+                'fingerprint': row.fingerprint,
+                'user_agent': row.user_agent,
+                'visit_count': row.visit_count,
+                'first_seen': row.first_seen.isoformat(),
+                'last_seen': row.last_seen.isoformat(),
+            }
+            for row in rows
+        ],
+    })
 
 
 def title_search_view(request):

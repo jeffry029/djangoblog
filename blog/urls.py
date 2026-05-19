@@ -52,6 +52,10 @@ urlpatterns = [
         views.NewsListView.as_view(),
         name='news'),
     path(
+        '_internal/traffic-stats/',
+        views.public_traffic_stats_view,
+        name='public_traffic_stats'),
+    path(
         'links.html',
         views.LinkListView.as_view(),
         name='links'),

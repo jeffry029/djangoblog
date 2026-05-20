@@ -41,7 +41,7 @@
                         {% endif %}
                         {% if item.tags %}
                             <div class="mt-4 flex flex-wrap gap-2">
-                                {% for tag in item.tags|split:"," %}
+                                {% for tag in item.tags|news_tags %}
                                     {% if tag %}
                                         <span class="editorial-tag">{{ tag }}</span>
                                     {% endif %}

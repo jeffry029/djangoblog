@@ -147,7 +147,10 @@ def parse_aihot_items(html, base_url=AIHOT_URL):
 
         text = normalize_text(card.get_text(' ', strip=True))
         summary = text.replace(title, '', 1).strip()
-        tags = [normalize_text(tag.get_text(' ', strip=True)) for tag in card.select('[class*="tag"], .badge')]
+        tags = normalize_news_tags(
+            normalize_text(tag.get_text(' ', strip=True))
+            for tag in card.select('[class*="tag"], .badge')
+        )
         items.append({
             'title': title[:300],
             'summary': summary[:1200],
@@ -155,12 +158,30 @@ def parse_aihot_items(html, base_url=AIHOT_URL):
             'source': 'aihot',
             'source_name': 'AI HOT',
             'source_url': href,
-            'tags': ','.join(tag for tag in tags if tag)[:300],
+            'tags': ','.join(tags)[:300],
             'published_at': timezone.now(),
         })
         seen.add(href)
 
     return items
+
+
+def normalize_news_tags(tags):
+    normalized = []
+    for tag in tags:
+        tag = normalize_text(tag)
+        if tag and tag not in normalized:
+            normalized.append(tag)
+
+    atomic_tags = []
+    for tag in normalized:
+        is_joined_duplicate = any(
+            tag != other and re.search(rf'(^|\s){re.escape(other)}($|\s)', tag)
+            for other in normalized
+        )
+        if not is_joined_duplicate:
+            atomic_tags.append(tag)
+    return atomic_tags
 
 
 def collect_aihot_news(limit=30, hours=None):

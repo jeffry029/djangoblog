@@ -22,6 +22,24 @@ from blog.services.collectors import (
 
 
 class FeedCollectorParsingTest(SimpleTestCase):
+    def test_parse_aihot_items_ignores_tag_container_text(self):
+        from blog.services.collectors import parse_aihot_items
+
+        html = """
+        <article class="news-card">
+          <a href="/items/agent-google">Google updates agent products</a>
+          <div class="tag-list">
+            <span class="tag">智能体</span>
+            <span class="tag">Google</span>
+            <span class="tag">产品更新</span>
+          </div>
+        </article>
+        """
+
+        entries = parse_aihot_items(html, base_url='https://example.com/')
+
+        self.assertEqual(entries[0]['tags'], '智能体,Google,产品更新')
+
     def test_parse_rss_entries_uses_channel_title_and_pubdate(self):
         xml = """<?xml version="1.0" encoding="UTF-8"?>
         <rss version="2.0">

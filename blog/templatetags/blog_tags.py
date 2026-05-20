@@ -81,6 +81,13 @@ def split(value, separator=','):
     return [item.strip() for item in value.split(separator) if item.strip()]
 
 
+@register.filter()
+@stringfilter
+def news_tags(value):
+    from blog.services.collectors import normalize_news_tags
+    return normalize_news_tags(value.split(','))
+
+
 @register.simple_tag(takes_context=True)
 def render_article_content(context, article, is_summary=False):
     """

@@ -109,6 +109,14 @@ class ViteTagsTest(BaseTestCase):
 class CustomFiltersTest(BaseTestCase):
     """测试自定义过滤器"""
 
+    def test_news_tags_filter_removes_joined_duplicate_label(self):
+        template = Template('{% load blog_tags %}{% for tag in tags|news_tags %}[{{ tag }}]{% endfor %}')
+        context = Context({'tags': '智能体 Google 产品更新,智能体,Google,产品更新'})
+
+        result = template.render(context)
+
+        self.assertEqual(result, '[智能体][Google][产品更新]')
+
     def test_date_format_filter(self):
         """测试日期格式化过滤器"""
         from django.utils import timezone

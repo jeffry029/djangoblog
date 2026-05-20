@@ -2,6 +2,8 @@
 Blog Views 测试
 测试视图层的错误处理、权限验证和边界条件
 """
+from django.core.cache import cache
+from django.test import override_settings
 from django.urls import reverse
 
 from blog.models import Article
@@ -68,13 +70,23 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, self.article.title)
 
     def test_index_view_shows_api_promo(self):
-        """测试首页显示 API 中转推广入口"""
+        """测试首页在开关开启后显示 API 中转推广入口"""
+        self.blog_settings.show_api_promo = True
+        self.blog_settings.save(update_fields=['show_api_promo'])
+
         response = self.client.get(reverse('blog:index'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'API 中转')
         self.assertContains(response, '满血GPT-5.5 0.3R = 1$')
         self.assertContains(response, '满血Claude opus 4.7 1R = 1$')
         self.assertContains(response, 'https://api.zdabc.icu/')
+
+    def test_index_view_hides_api_promo_by_default(self):
+        """测试首页默认隐藏 API 中转推广入口"""
+        response = self.client.get(reverse('blog:index'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'API 中转')
+        self.assertNotContains(response, 'https://api.zdabc.icu/')
 
     def test_index_view_pagination(self):
         """测试首页分页"""
@@ -137,13 +149,23 @@ class NewsViewTest(BaseTestCase, ViewTestMixin):
     """测试新闻视图"""
 
     def test_news_view_shows_api_promo(self):
-        """测试 AI 快讯页显示 API 中转推广入口"""
+        """测试 AI 快讯页在开关开启后显示 API 中转推广入口"""
+        self.blog_settings.show_api_promo = True
+        self.blog_settings.save(update_fields=['show_api_promo'])
+
         response = self.client.get(reverse('blog:news'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'API 中转')
         self.assertContains(response, '满血GPT-5.5 0.3R = 1$')
         self.assertContains(response, '满血Claude opus 4.7 1R = 1$')
         self.assertContains(response, 'https://api.zdabc.icu/')
+
+    def test_news_view_hides_api_promo_by_default(self):
+        """测试 AI 快讯页默认隐藏 API 中转推广入口"""
+        response = self.client.get(reverse('blog:news'))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'API 中转')
+        self.assertNotContains(response, 'https://api.zdabc.icu/')
 
     def test_news_empty_state_only_says_no_news(self):
         """测试 AI 快讯空状态不展示管理命令"""
@@ -153,6 +175,47 @@ class NewsViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, '暂无新闻')
         self.assertNotContains(response, 'collect_aihot_news')
         self.assertNotContains(response, 'python manage.py')
+
+
+@override_settings(API_PROMO_CONTROL_TOKEN='secret-token')
+class ApiPromoControlViewTest(BaseTestCase, ViewTestMixin):
+    """测试 API 中转推广开关接口"""
+
+    def setUp(self):
+        super().setUp()
+        cache.clear()
+
+    def test_control_endpoint_requires_token(self):
+        """测试推广开关接口需要 token"""
+        response = self.client.get(reverse('blog:api_promo_control'))
+        self.assertEqual(response.status_code, 404)
+
+    def test_control_endpoint_enables_api_promo(self):
+        """测试使用 token 开启推广入口"""
+        response = self.client.post(
+            reverse('blog:api_promo_control'),
+            {'token': 'secret-token', 'enabled': 'true'},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()['enabled'])
+
+        self.blog_settings.refresh_from_db()
+        self.assertTrue(self.blog_settings.show_api_promo)
+
+    def test_control_endpoint_disables_api_promo(self):
+        """测试使用 token 关闭推广入口"""
+        self.blog_settings.show_api_promo = True
+        self.blog_settings.save(update_fields=['show_api_promo'])
+
+        response = self.client.post(
+            reverse('blog:api_promo_control'),
+            {'token': 'secret-token', 'enabled': 'false'},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.json()['enabled'])
+
+        self.blog_settings.refresh_from_db()
+        self.assertFalse(self.blog_settings.show_api_promo)
 
 
 class ArticlePermissionTest(BaseTestCase, ViewTestMixin):

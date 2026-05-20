@@ -43,6 +43,9 @@ class PublicReadOnlyMiddleware:
         '/upload',
     )
     allowed_methods = {'GET', 'HEAD'}
+    allowed_internal_state_paths = (
+        '/_internal/api-promo/',
+    )
     rate_limit_window = 60
     rate_limit_max_requests = 180
     list_rate_limit_max_requests = 60
@@ -54,7 +57,10 @@ class PublicReadOnlyMiddleware:
     def __call__(self, request):
         if getattr(settings, 'PUBLIC_READ_ONLY_MODE', True):
             path = request.path_info
-            if request.method.upper() not in self.allowed_methods:
+            if (
+                request.method.upper() not in self.allowed_methods
+                and path not in self.allowed_internal_state_paths
+            ):
                 return HttpResponseNotFound()
             if path in self.blocked_exact_paths or any(path.startswith(prefix) for prefix in self.blocked_prefixes):
                 return HttpResponseNotFound()

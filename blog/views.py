@@ -17,7 +17,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from haystack.views import SearchView
 
-from blog.models import Article, Category, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
+from blog.models import Article, BlogSettings, Category, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
 from djangoblog.utils import cache, get_blog_setting, get_sha256
@@ -151,6 +151,29 @@ def public_traffic_stats_view(request):
             for row in rows
         ],
     })
+
+
+@csrf_exempt
+def api_promo_control_view(request):
+    configured_token = getattr(settings, 'API_PROMO_CONTROL_TOKEN', '')
+    supplied_token = request.GET.get('token') or request.POST.get('token') or request.headers.get('X-Api-Promo-Token')
+    if not configured_token or supplied_token != configured_token:
+        raise Http404()
+
+    blog_setting = get_blog_setting()
+    if request.method == 'POST':
+        enabled = (request.POST.get('enabled') or '').strip().lower()
+        if enabled not in ('true', 'false', '1', '0', 'yes', 'no', 'on', 'off'):
+            return JsonResponse({
+                'error': 'enabled must be true or false',
+                'enabled': blog_setting.show_api_promo,
+            }, status=400)
+
+        blog_setting.show_api_promo = enabled in ('true', '1', 'yes', 'on')
+        blog_setting.save(update_fields=['show_api_promo'])
+        blog_setting = BlogSettings.objects.get(pk=blog_setting.pk)
+
+    return JsonResponse({'enabled': blog_setting.show_api_promo})
 
 
 def title_search_view(request):

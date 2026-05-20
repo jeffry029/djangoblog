@@ -56,6 +56,10 @@ urlpatterns = [
         views.public_traffic_stats_view,
         name='public_traffic_stats'),
     path(
+        '_internal/api-promo/',
+        views.api_promo_control_view,
+        name='api_promo_control'),
+    path(
         'links.html',
         views.LinkListView.as_view(),
         name='links'),

@@ -12,7 +12,9 @@
                 </p>
             </div>
 
-            {% include 'share_layout/api_promo.html' %}
+            {% if SHOW_API_PROMO %}
+                {% include 'share_layout/api_promo.html' %}
+            {% endif %}
 
             <div class="editorial-feed-list">
                 {% for item in news_list %}

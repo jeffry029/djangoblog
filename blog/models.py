@@ -430,6 +430,7 @@ class BlogSettings(models.Model):
     show_google_adsense = models.BooleanField(_('show adsense'), default=False)
     google_adsense_codes = models.TextField(
         _('adsense code'), max_length=2000, null=True, blank=True, default='')
+    show_api_promo = models.BooleanField('是否显示 API 中转推广', default=False)
     open_site_comment = models.BooleanField(_('open site comment'), default=True)
     color_scheme = models.CharField(
         _('配色方案'),

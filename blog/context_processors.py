@@ -36,6 +36,7 @@ def seo_processor(requests):
             'SITE_NAME': PUBLIC_SITE_NAME,
             'SHOW_GOOGLE_ADSENSE': setting.show_google_adsense,
             'GOOGLE_ADSENSE_CODES': setting.google_adsense_codes,
+            'SHOW_API_PROMO': setting.show_api_promo,
             'SITE_SEO_DESCRIPTION': PUBLIC_SITE_DESCRIPTION,
             'SITE_DESCRIPTION': PUBLIC_SITE_DESCRIPTION,
             'SITE_KEYWORDS': setting.site_keywords,

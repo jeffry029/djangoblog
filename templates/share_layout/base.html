@@ -16,7 +16,9 @@
     <meta name="robots" content="index, follow"/>
     {% head_meta %}
     {% block header %}
-        <!-- SEO插件会自动生成title、description、keywords等标签 -->
+        <title>{{ seo_title|default:SITE_NAME }}</title>
+        <meta name="description" content="{{ seo_description|default:SITE_DESCRIPTION }}"/>
+        <meta name="keywords" content="{{ seo_keywords|default:SITE_KEYWORDS }}"/>
     {% endblock %}
     <link rel="profile" href="http://gmpg.org/xfn/11"/>
 

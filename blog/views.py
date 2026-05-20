@@ -2,6 +2,7 @@ import logging
 import os
 import uuid
 
+from blog.context_processors import PUBLIC_SITE_NAME
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Sum
@@ -100,7 +101,7 @@ class NewsListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         blog_setting = get_blog_setting()
-        context['seo_title'] = f"AI 快讯 | {blog_setting.site_name}"
+        context['seo_title'] = f"AI 快讯 | {PUBLIC_SITE_NAME}"
         context['seo_description'] = "AI 与技术新闻快讯。"
         context['seo_keywords'] = f"技术新闻,AI新闻,{blog_setting.site_keywords}"
         context['linktype'] = LinkShowType.L

@@ -148,6 +148,12 @@ class SearchViewTest(BaseTestCase, ViewTestMixin):
 class NewsViewTest(BaseTestCase, ViewTestMixin):
     """测试新闻视图"""
 
+    def test_news_view_sets_browser_title(self):
+        """测试 AI 快讯页设置浏览器页签标题"""
+        response = self.client.get(reverse('blog:news'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<title>AI 快讯 | 开发者雷达</title>', html=True)
+
     def test_news_view_shows_api_promo(self):
         """测试 AI 快讯页在开关开启后显示 API 中转推广入口"""
         self.blog_settings.show_api_promo = True

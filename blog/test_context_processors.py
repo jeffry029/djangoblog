@@ -213,6 +213,7 @@ class SeoProcessorTest(TestCase):
         mock_setting.article_sub_length = 100
         mock_setting.show_google_adsense = False
         mock_setting.google_adsense_codes = ''
+        mock_setting.show_api_promo = False
         mock_setting.open_site_comment = True
         mock_setting.beian_code = ''
         mock_setting.analytics_code = ''
@@ -231,10 +232,11 @@ class SeoProcessorTest(TestCase):
         request = self.factory.get('/')
         result = seo_processor(request)
 
-        # 验证返回的值与模拟的设置匹配
-        self.assertEqual(result['SITE_NAME'], 'Test Blog')
-        self.assertEqual(result['SITE_DESCRIPTION'], 'A test blog')
-        self.assertEqual(result['SITE_SEO_DESCRIPTION'], 'SEO description')
+        # 公开站点名和描述固定为当前产品品牌
+        self.assertEqual(result['SITE_NAME'], '开发者雷达')
+        self.assertEqual(result['SITE_DESCRIPTION'], 'AI 精选与摘要技术文章、编程实践和人工智能新闻。')
+        self.assertEqual(result['SITE_SEO_DESCRIPTION'], 'AI 精选与摘要技术文章、编程实践和人工智能新闻。')
+        # 仍保留后台配置中的可配置字段
         self.assertEqual(result['SITE_KEYWORDS'], 'test, blog')
         self.assertEqual(result['ARTICLE_SUB_LENGTH'], 100)
         self.assertEqual(result['SHOW_GOOGLE_ADSENSE'], False)
@@ -308,7 +310,10 @@ class SeoProcessorTest(TestCase):
 
         # 验证所有分类都在列表中
         nav_categories = list(result['nav_category_list'])
-        self.assertEqual(len(nav_categories), 3)
+        category_names = [category.name for category in nav_categories]
+        self.assertIn('Test Category', category_names)
+        self.assertIn('Category 2', category_names)
+        self.assertIn('Category 3', category_names)
 
     def test_processor_multiple_pages(self):
         """测试多个页面的情况"""

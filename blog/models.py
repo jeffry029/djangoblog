@@ -478,3 +478,27 @@ class BlogSettings(models.Model):
         super().save(*args, **kwargs)
         from djangoblog.utils import cache
         cache.clear()
+
+
+class Feedback(models.Model):
+    """用户建议反馈"""
+
+    content = models.TextField('反馈内容')
+    contact = models.CharField('联系方式', max_length=200, blank=True, default='')
+    ip_address = models.GenericIPAddressField('IP 地址', unpack_ipv4=True)
+    user_agent = models.CharField('User-Agent', max_length=500, blank=True, default='')
+    referer = models.CharField('来源页面', max_length=500, blank=True, default='')
+    idempotency_key = models.CharField('幂等键', max_length=64, unique=True)
+    created_at = models.DateTimeField('提交时间', default=now)
+
+    class Meta:
+        verbose_name = '用户反馈'
+        verbose_name_plural = verbose_name
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['-created_at'], name='idx_feedback_created'),
+            models.Index(fields=['ip_address', '-created_at'], name='idx_feedback_ip_time'),
+        ]
+
+    def __str__(self):
+        return f'{self.created_at:%Y-%m-%d %H:%M} {self.ip_address} - {self.content[:30]}'

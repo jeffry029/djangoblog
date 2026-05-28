@@ -269,5 +269,84 @@
     </div>
 </div>
 
+<!-- 建议反馈模态框 - Alpine.js组件 -->
+<div x-data="feedbackForm()"
+     @open-feedback.window="open()"
+     @keydown.escape.window="showModal && close()"
+     x-cloak
+     role="dialog"
+     aria-modal="true"
+     :aria-hidden="!showModal"
+     aria-label="建议反馈">
+    <!-- 遮罩层 -->
+    <div x-show="showModal"
+         @click="close()"
+         class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+    </div>
+    <!-- FEEDBACK_MODAL_CONTENT -->
+    <!-- 表单容器 -->
+    <div x-show="showModal"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95">
+        <div class="relative w-full max-w-md rounded-xl bg-card p-6 shadow-2xl" @click.stop>
+            <!-- 关闭按钮 -->
+            <button @click="close()" aria-label="关闭"
+                    class="absolute top-3 right-3 inline-flex size-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
+                <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <h2 class="text-lg font-semibold text-foreground">建议反馈</h2>
+            <p class="mt-1 text-sm text-muted-foreground">有任何建议或问题，欢迎告诉我们</p>
+            <!-- FEEDBACK_FORM_BODY -->
+            <!-- 成功状态 -->
+            <div x-show="submitted" class="mt-6 text-center">
+                <svg class="mx-auto size-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>
+                <p class="mt-3 text-sm text-foreground">感谢您的反馈！</p>
+                <button @click="close()" class="mt-4 rounded-lg bg-primary-600 px-4 py-2 text-sm text-white transition-colors hover:bg-primary-500">关闭</button>
+            </div>
+            <!-- 表单 -->
+            <form x-show="!submitted" @submit.prevent="submit()" class="mt-4 space-y-4">
+                {% csrf_token %}
+                <div class="absolute -left-[9999px]" aria-hidden="true">
+                    <input type="text" name="website" x-model="honeypot" tabindex="-1" autocomplete="off">
+                </div>
+                <div>
+                    <label for="feedback-content" class="block text-sm font-medium text-foreground">反馈内容 <span class="text-destructive">*</span></label>
+                    <textarea id="feedback-content" x-ref="contentInput" x-model="content" rows="4" maxlength="2000"
+                              placeholder="请输入您的建议或反馈（至少10个字符）"
+                              class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              required></textarea>
+                    <p class="mt-1 text-xs text-muted-foreground" x-text="`${content.length}/2000`"></p>
+                </div>
+                <div>
+                    <label for="feedback-contact" class="block text-sm font-medium text-foreground">联系方式 <span class="text-muted-foreground font-normal">（选填，推荐邮箱）</span></label>
+                    <input id="feedback-contact" type="text" x-model="contact" maxlength="200" placeholder="邮箱或其他联系方式"
+                           class="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                </div>
+                <p x-show="error" x-text="error" class="text-sm text-destructive" role="alert"></p>
+                <button type="submit" :disabled="isSubmitting"
+                        class="w-full rounded-lg bg-primary-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary-500 disabled:cursor-not-allowed disabled:opacity-50">
+                    <span x-show="!isSubmitting">提交反馈</span>
+                    <span x-show="isSubmitting">提交中...</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 </body>
 </html>

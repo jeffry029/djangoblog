@@ -45,6 +45,7 @@ class PublicReadOnlyMiddleware:
     allowed_methods = {'GET', 'HEAD'}
     allowed_internal_state_paths = (
         '/_internal/api-promo/',
+        '/_internal/feedback/submit/',
     )
     rate_limit_window = 60
     rate_limit_max_requests = 180

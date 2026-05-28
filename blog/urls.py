@@ -60,6 +60,14 @@ urlpatterns = [
         views.api_promo_control_view,
         name='api_promo_control'),
     path(
+        '_internal/feedback/submit/',
+        views.feedback_submit_view,
+        name='feedback_submit'),
+    path(
+        '_internal/feedback/',
+        views.feedback_list_view,
+        name='feedback_list'),
+    path(
         'links.html',
         views.LinkListView.as_view(),
         name='links'),

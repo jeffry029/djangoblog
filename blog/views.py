@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import uuid
 
 from blog.context_processors import PUBLIC_SITE_NAME
@@ -18,7 +19,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from haystack.views import SearchView
 
-from blog.models import Article, BlogSettings, Category, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
+from blog.models import Article, BlogSettings, Category, Feedback, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
 from djangoblog.utils import cache, get_blog_setting, get_sha256
@@ -518,3 +519,99 @@ from djangoblog.error_views import (
 def clean_cache_view(request):
     cache.clear()
     return HttpResponse('ok')
+
+
+def feedback_submit_view(request):
+    """处理用户反馈提交，带安全防护。"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    # Honeypot: 机器人会填写隐藏字段
+    if request.POST.get('website', '').strip():
+        return JsonResponse({'success': True})
+
+    content = request.POST.get('content', '').strip()
+    contact = request.POST.get('contact', '').strip()
+    idempotency_key = request.POST.get('idempotency_key', '').strip()
+
+    # 输入验证
+    if not content or len(content) < 10:
+        return JsonResponse({'error': '反馈内容至少需要10个字符'}, status=400)
+    if len(content) > 2000:
+        return JsonResponse({'error': '反馈内容不能超过2000个字符'}, status=400)
+    if len(contact) > 200:
+        return JsonResponse({'error': '联系方式不能超过200个字符'}, status=400)
+    if not idempotency_key or len(idempotency_key) > 64:
+        return JsonResponse({'error': '无效的请求标识'}, status=400)
+
+    # 去除 HTML 标签
+    content = re.sub(r'<[^>]+>', '', content)
+    contact = re.sub(r'<[^>]+>', '', contact)
+
+    # 频率限制: 每 IP 每小时 3 次
+    from blog.traffic import get_client_ip
+    from django.core.cache import cache as django_cache
+
+    ip = get_client_ip(request)
+    rate_key = f'feedback-rate:{ip}'
+    current_count = django_cache.get(rate_key)
+    if current_count is not None and current_count >= 3:
+        return JsonResponse({'error': '提交过于频繁，请稍后再试'}, status=429)
+
+    # 幂等性: 重复 key 静默返回成功
+    if Feedback.objects.filter(idempotency_key=idempotency_key).exists():
+        return JsonResponse({'success': True})
+
+    Feedback.objects.create(
+        content=content,
+        contact=contact,
+        ip_address=ip,
+        user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+        referer=request.META.get('HTTP_REFERER', '')[:500],
+        idempotency_key=idempotency_key,
+    )
+
+    # 递增频率计数
+    if current_count is None:
+        django_cache.set(rate_key, 1, 3600)
+    else:
+        try:
+            django_cache.incr(rate_key)
+        except ValueError:
+            django_cache.set(rate_key, 1, 3600)
+
+    return JsonResponse({'success': True})
+
+
+def feedback_list_view(request):
+    """内部接口: 查看所有反馈详情，token 保护。"""
+    configured_token = getattr(settings, 'FEEDBACK_TOKEN', '')
+    supplied_token = request.GET.get('token') or request.headers.get('X-Feedback-Token')
+    if not configured_token or supplied_token != configured_token:
+        raise Http404()
+
+    try:
+        limit = int(request.GET.get('limit', '100'))
+    except ValueError:
+        limit = 100
+    limit = max(1, min(limit, 1000))
+
+    feedbacks = Feedback.objects.all()
+    total = feedbacks.count()
+    rows = list(feedbacks.order_by('-created_at')[:limit])
+    return JsonResponse({
+        'total': total,
+        'rows': [
+            {
+                'id': fb.id,
+                'content': fb.content,
+                'contact': fb.contact,
+                'ip_address': fb.ip_address,
+                'user_agent': fb.user_agent,
+                'referer': fb.referer,
+                'idempotency_key': fb.idempotency_key,
+                'created_at': fb.created_at.isoformat(),
+            }
+            for fb in rows
+        ],
+    })

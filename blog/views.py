@@ -6,7 +6,7 @@ import uuid
 from blog.context_processors import PUBLIC_SITE_NAME
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
@@ -19,7 +19,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
 from haystack.views import SearchView
 
-from blog.models import Article, BlogSettings, Category, Feedback, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
+from blog.models import Article, BookmarkStat, BlogSettings, Category, Feedback, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
 from djangoblog.utils import cache, get_blog_setting, get_sha256
@@ -614,4 +614,57 @@ def feedback_list_view(request):
             }
             for fb in rows
         ],
+    })
+
+
+@csrf_exempt
+def bookmark_stats_view(request):
+    """返回站点统计：总浏览量 + 收藏人数。"""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    total_views = Article.objects.filter(
+        status='p'
+    ).aggregate(total=Sum('views'))['total'] or 0
+
+    bookmark_stat = BookmarkStat.get_singleton()
+
+    return JsonResponse({
+        'success': True,
+        'total_views': total_views,
+        'bookmark_count': bookmark_stat.bookmark_count,
+    })
+
+
+@csrf_exempt
+def bookmark_add_view(request):
+    """收藏计数 +1，同一 IP 每天限一次。"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    from blog.traffic import get_client_ip
+    from django.core.cache import cache as django_cache
+
+    ip = get_client_ip(request)
+    rate_key = f'bookmark-rate:{ip}:{timezone.now().strftime("%Y-%m-%d")}'
+    if django_cache.get(rate_key):
+        bookmark_stat = BookmarkStat.get_singleton()
+        return JsonResponse({
+            'success': True,
+            'bookmark_count': bookmark_stat.bookmark_count,
+            'already_bookmarked': True,
+        })
+
+    BookmarkStat.objects.filter(pk=1).update(
+        bookmark_count=F('bookmark_count') + 1
+    )
+    bookmark_stat = BookmarkStat.get_singleton()
+
+    # 24h TTL，同一 IP 每天只 +1
+    django_cache.set(rate_key, 1, 86400)
+
+    return JsonResponse({
+        'success': True,
+        'bookmark_count': bookmark_stat.bookmark_count,
+        'already_bookmarked': False,
     })

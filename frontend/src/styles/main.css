@@ -3288,3 +3288,31 @@ textarea:focus,
 select:focus {
   transition: all 0.2s ease;
 }
+
+/* Bookmark toast notification */
+.bookmark-toast {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.6rem 1.2rem;
+  border-radius: 0.5rem;
+  background: rgb(var(--card));
+  color: rgb(var(--foreground));
+  border: 1px solid rgb(var(--border) / 0.5);
+  box-shadow: var(--shadow-elevated);
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: bookmark-toast-in 0.3s ease-out, bookmark-toast-out 0.3s ease-in 2.7s forwards;
+}
+
+@keyframes bookmark-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(1rem); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes bookmark-toast-out {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(1rem); }
+}

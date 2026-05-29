@@ -6,7 +6,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 # Register your models here.
-from .models import Article, Category, Tag, Links, NewsItem, SideBar, BlogSettings
+from .models import Article, BookmarkStat, Category, Tag, Links, NewsItem, SideBar, BlogSettings
 
 
 class ArticleForm(forms.ModelForm):
@@ -148,3 +148,13 @@ class BlogSettingsAdmin(admin.ModelAdmin):
         from djangoblog.utils import cache
         cache.clear()
         self.message_user(request, '设置已保存，缓存已清除')
+
+
+class BookmarkStatAdmin(admin.ModelAdmin):
+    list_display = ('bookmark_count',)
+
+    def has_add_permission(self, request):
+        return not BookmarkStat.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False

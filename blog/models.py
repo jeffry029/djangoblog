@@ -371,6 +371,23 @@ class PublicTrafficDailyStat(models.Model):
         return f'{self.date} {self.route_name} {self.ip_address} {self.visit_count}'
 
 
+class BookmarkStat(models.Model):
+    """Singleton model tracking total bookmark count."""
+    bookmark_count = models.PositiveIntegerField(_('bookmark count'), default=0)
+
+    class Meta:
+        verbose_name = _('bookmark stat')
+        verbose_name_plural = verbose_name
+
+    @classmethod
+    def get_singleton(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return str(self.bookmark_count)
+
+
 class SideBar(models.Model):
     """侧边栏,可以展示一些html内容"""
     name = models.CharField(_('title'), max_length=100)

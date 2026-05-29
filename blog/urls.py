@@ -68,6 +68,14 @@ urlpatterns = [
         views.feedback_list_view,
         name='feedback_list'),
     path(
+        '_internal/bookmark/stats/',
+        views.bookmark_stats_view,
+        name='bookmark_stats'),
+    path(
+        '_internal/bookmark/add/',
+        views.bookmark_add_view,
+        name='bookmark_add'),
+    path(
         'links.html',
         views.LinkListView.as_view(),
         name='links'),

@@ -78,7 +78,7 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'API 中转')
         self.assertContains(response, '满血GPT-5.5 0.3R = 1$')
-        self.assertContains(response, '满血Claude opus 4.7 1R = 1$')
+        self.assertContains(response, '满血Claude opus 4.8 1R = 1$')
         self.assertContains(response, 'https://api.zdabc.icu/')
 
     def test_index_view_hides_api_promo_by_default(self):
@@ -163,7 +163,7 @@ class NewsViewTest(BaseTestCase, ViewTestMixin):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'API 中转')
         self.assertContains(response, '满血GPT-5.5 0.3R = 1$')
-        self.assertContains(response, '满血Claude opus 4.7 1R = 1$')
+        self.assertContains(response, '满血Claude opus 4.8 1R = 1$')
         self.assertContains(response, 'https://api.zdabc.icu/')
 
     def test_news_view_hides_api_promo_by_default(self):

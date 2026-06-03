@@ -162,20 +162,10 @@ def api_promo_control_view(request):
     if not configured_token or supplied_token != configured_token:
         raise Http404()
 
-    blog_setting = get_blog_setting()
-    if request.method == 'POST':
-        enabled = (request.POST.get('enabled') or '').strip().lower()
-        if enabled not in ('true', 'false', '1', '0', 'yes', 'no', 'on', 'off'):
-            return JsonResponse({
-                'error': 'enabled must be true or false',
-                'enabled': blog_setting.show_api_promo,
-            }, status=400)
-
-        blog_setting.show_api_promo = enabled in ('true', '1', 'yes', 'on')
-        blog_setting.save(update_fields=['show_api_promo'])
-        blog_setting = BlogSettings.objects.get(pk=blog_setting.pk)
-
-    return JsonResponse({'enabled': blog_setting.show_api_promo})
+    return JsonResponse({
+        'enabled': settings.SHOW_API_PROMO,
+        'source': 'environment',
+    })
 
 
 def title_search_view(request):

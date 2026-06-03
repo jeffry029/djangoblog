@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.utils import timezone
 
 from djangoblog.utils import cache, get_blog_setting
@@ -20,6 +21,7 @@ def seo_processor(requests):
         value['SITE_NAME'] = PUBLIC_SITE_NAME
         value['SITE_DESCRIPTION'] = PUBLIC_SITE_DESCRIPTION
         value['SITE_SEO_DESCRIPTION'] = PUBLIC_SITE_DESCRIPTION
+        value['SHOW_API_PROMO'] = settings.SHOW_API_PROMO
         return value
     else:
         logger.info('set processor cache.')
@@ -36,7 +38,7 @@ def seo_processor(requests):
             'SITE_NAME': PUBLIC_SITE_NAME,
             'SHOW_GOOGLE_ADSENSE': setting.show_google_adsense,
             'GOOGLE_ADSENSE_CODES': setting.google_adsense_codes,
-            'SHOW_API_PROMO': setting.show_api_promo,
+            'SHOW_API_PROMO': settings.SHOW_API_PROMO,
             'SITE_SEO_DESCRIPTION': PUBLIC_SITE_DESCRIPTION,
             'SITE_DESCRIPTION': PUBLIC_SITE_DESCRIPTION,
             'SITE_KEYWORDS': setting.site_keywords,

@@ -27,6 +27,13 @@ def env_to_bool(env, default):
     return default if str_val is None else str_val == 'True'
 
 
+def env_to_enabled(env, default=False):
+    str_val = os.environ.get(env)
+    if str_val is None:
+        return default
+    return str_val.strip().lower() in ('true', '1', 'yes', 'on')
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -46,6 +53,7 @@ PUBLIC_LIST_RATE_LIMIT_PER_MINUTE = int(os.environ.get('PUBLIC_LIST_RATE_LIMIT_P
 PUBLIC_FINGERPRINT_RATE_LIMIT_PER_MINUTE = int(os.environ.get('PUBLIC_FINGERPRINT_RATE_LIMIT_PER_MINUTE') or 90)
 PUBLIC_TRAFFIC_STATS_TOKEN = os.environ.get('PUBLIC_TRAFFIC_STATS_TOKEN') or ''
 API_PROMO_CONTROL_TOKEN = os.environ.get('API_PROMO_CONTROL_TOKEN') or ''
+SHOW_API_PROMO = env_to_enabled('SHOW_API_PROMO', False)
 FEEDBACK_TOKEN = os.environ.get('FEEDBACK_TOKEN') or ''
 
 # ALLOWED_HOSTS = []

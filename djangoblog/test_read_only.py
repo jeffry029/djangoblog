@@ -44,6 +44,12 @@ class PublicReadOnlyModeTests(SimpleTestCase):
                 response = self.middleware(request)
                 self.assertEqual(response.status_code, 404)
 
+    def test_language_switch_post_passes_through(self):
+        request = self.factory.post('/i18n/setlang/', {'language': 'en', 'next': '/'})
+        response = self.middleware(request)
+
+        self.assertEqual(response.status_code, 200)
+
     def test_public_get_routes_pass_through(self):
         for path in ('/', '/news/', '/search?q=python', '/rss/', '/sitemap.xml', '/health/'):
             with self.subTest(path=path):

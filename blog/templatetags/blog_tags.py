@@ -456,18 +456,16 @@ def load_article_metas(article, user):
 
 
 @register.inclusion_tag('blog/tags/article_pagination.html')
-def load_pagination_info(page_obj, page_type, tag_name):
+def load_pagination_info(page_obj, page_type, tag_name, pagination_slug=None):
     previous_url = ''
     next_url = ''
 
     # Pre-resolve slug for tag/category to avoid repeated DB queries
     _slug = None
     if page_type == '分类标签归档':
-        _slug = get_object_or_404(Tag, name=tag_name).slug
+        _slug = pagination_slug or get_object_or_404(Tag, name=tag_name).slug
     elif page_type == '分类目录归档':
-        _slug = get_object_or_404(
-            Category.objects.filter(Q(name=tag_name) | Q(name_en=tag_name))
-        ).slug
+        _slug = pagination_slug or get_object_or_404(Category, name=tag_name).slug
 
     def _build_url(page_number):
         """Build URL for a given page number based on page_type."""

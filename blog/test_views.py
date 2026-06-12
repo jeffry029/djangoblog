@@ -7,7 +7,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import translation
 
-from blog.models import Article
+from blog.models import Article, Category
 from djangoblog.test_base import BaseTestCase, ViewTestMixin
 
 
@@ -87,6 +87,31 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, 'hreflang="en"')
         self.assertContains(response, 'href="/en/"')
 
+    def test_article_detail_omits_english_alternate_without_english_content(self):
+        """测试未翻译历史文章不向搜索引擎声明英文版本"""
+        self.article.title_en = ''
+        self.article.body_en = ''
+        self.article.save(update_fields=['title_en', 'body_en', 'last_modify_time'])
+
+        response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'hreflang="zh-Hans"')
+        self.assertNotContains(response, 'hreflang="en"')
+        self.assertNotContains(response, self.article.get_full_url_for_language('en'))
+
+    def test_english_article_detail_noindexes_missing_english_content(self):
+        """测试英文路径访问未翻译文章时避免索引中文 fallback 页面"""
+        self.article.title_en = ''
+        self.article.body_en = ''
+        self.article.save(update_fields=['title_en', 'body_en', 'last_modify_time'])
+
+        with translation.override('en'):
+            response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'noindex, follow')
+
     def test_index_view_uses_english_content_for_english_locale(self):
         """测试英文列表页展示英文标题和摘要"""
         self.article.title_en = 'English Index Article'
@@ -100,12 +125,27 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, 'English Index Article')
         self.assertContains(response, 'English index body')
 
+    def test_index_view_uses_configured_english_site_seo(self):
+        """测试英文首页使用后台配置的英文站点 SEO"""
+        self.blog_settings.site_name_en = 'Custom English Site'
+        self.blog_settings.site_seo_description_en = 'Custom English SEO description'
+        self.blog_settings.save(update_fields=['site_name_en', 'site_seo_description_en'])
+
+        with translation.override('en'):
+            response = self.client.get(reverse('blog:index'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<title>Custom English Site</title>', html=True)
+        self.assertContains(response, 'Custom English SEO description')
+
     def test_header_contains_language_switcher(self):
         """测试页面头部包含语言切换控件"""
         response = self.client.get(reverse('blog:index'))
 
         self.assertContains(response, reverse('set_language'))
         self.assertContains(response, 'name="language"')
+        self.assertContains(response, 'formaction="/i18n/setlang/?next=/en/"')
+        self.assertNotContains(response, 'onchange="this.form.elements')
 
     @override_settings(SHOW_API_PROMO=True)
     def test_index_view_shows_api_promo(self):
@@ -154,6 +194,23 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, 'Browse all articles in English Category')
         self.assertNotContains(response, '浏览 English Category 分类下')
 
+    def test_category_pagination_with_duplicate_english_names_does_not_500(self):
+        """测试分类英文名重复时分页仍使用当前分类 slug"""
+        self.category.name_en = 'Shared English Category'
+        self.category.save(update_fields=['name_en'])
+        Category.objects.create(name='另一个分类', name_en='Shared English Category')
+        for i in range(12):
+            self.create_article(title=f'分页文章 {i}', category=self.category)
+
+        with translation.override('en'):
+            response = self.client.get(self.category.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse('blog:category_detail_page', kwargs={
+            'category_name': self.category.slug,
+            'page': 2,
+        }))
+
     def test_category_view_invalid_slug(self):
         """测试无效分类 slug"""
         url = reverse('blog:category_detail', kwargs={'category_name': 'invalid'})
@@ -166,6 +223,19 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         url = self.tag.get_absolute_url()
         response = self.assert_view_success(url)
         self.assertContains(response, self.tag.name)
+
+    def test_tag_view_uses_english_tag_name_for_english_locale(self):
+        """测试英文标签页展示英文标签名和 SEO 描述"""
+        self.tag.name_en = 'English Tag'
+        self.tag.save(update_fields=['name_en'])
+        self.article.tags.add(self.tag)
+
+        with translation.override('en'):
+            response = self.client.get(self.tag.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'English Tag')
+        self.assertContains(response, 'Browse all articles about English Tag')
 
     def test_tag_view_invalid_slug(self):
         """测试无效标签 slug"""

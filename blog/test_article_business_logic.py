@@ -8,7 +8,7 @@ from django.utils import timezone
 from django.utils import translation
 
 from accounts.models import BlogUser
-from blog.models import Article, Category
+from blog.models import Article, Category, Tag
 
 
 class ArticleLifecycleTest(TestCase):
@@ -509,6 +509,20 @@ class ArticleCategoryTagTest(TestCase):
         """测试英文分类名缺失时回退到原分类名"""
         with translation.override('en'):
             self.assertEqual(self.category.get_name(), 'Test Category')
+
+    def test_tag_get_name_uses_english_when_available(self):
+        """测试英文语言下标签名优先使用英文配置"""
+        tag = Tag.objects.create(name='工程效能', name_en='Engineering Productivity')
+
+        with translation.override('en'):
+            self.assertEqual(tag.get_name(), 'Engineering Productivity')
+
+    def test_tag_get_name_falls_back_to_original_name(self):
+        """测试英文标签名缺失时回退到原标签名"""
+        tag = Tag.objects.create(name='数据工程')
+
+        with translation.override('en'):
+            self.assertEqual(tag.get_name(), '数据工程')
 
     def test_category_has_articles(self):
         """测试分类包含文章"""

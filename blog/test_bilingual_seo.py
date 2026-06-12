@@ -61,3 +61,14 @@ class BilingualSeoDiscoveryTest(TestCase):
         with translation.override('en'):
             self.assertEqual(feed.item_title(article), 'English Feed Title')
             self.assertIn('English feed body', feed.item_description(article))
+
+    def test_feed_metadata_uses_active_language(self):
+        feed = DjangoBlogFeed()
+
+        with translation.override('en'):
+            self.assertEqual(feed.title(), 'Developer Radar')
+            self.assertIn('AI-curated technical articles', feed.description())
+
+        with translation.override('zh-hans'):
+            self.assertEqual(feed.title(), '开发者雷达')
+            self.assertIn('AI 精选', feed.description())

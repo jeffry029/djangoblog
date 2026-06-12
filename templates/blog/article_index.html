@@ -26,7 +26,7 @@
                         <p class="mb-2 text-[13px] font-medium text-muted-foreground">{% trans 'AI curated engineering notes' %}</p>
                         <h1 class="m-0 font-headline text-[28px] font-bold leading-tight text-primary-600 md:text-[32px]">{% trans 'Tech Briefs' %}</h1>
                         <p class="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                            {% trans 'AI-curated technical articles, programming practices, and artificial intelligence news.' %}
+                            {{ SITE_DESCRIPTION }}
                         </p>
                         <div x-data="bookmarkButton" x-init="init()" class="mt-3 flex items-center gap-4 text-[13px] font-medium text-muted-foreground">
                             <span class="inline-flex items-center gap-1">
@@ -66,7 +66,7 @@
             </div>
 
             {% if is_paginated %}
-                {% load_pagination_info page_obj page_type tag_name %}
+                {% load_pagination_info page_obj page_type tag_name pagination_slug %}
             {% endif %}
         </main>
     </div>

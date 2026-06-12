@@ -6,6 +6,7 @@ import os
 from unittest.mock import Mock, patch
 
 from django.test import TestCase
+from django.utils import translation
 
 from djangoblog.plugin_manage.base_plugin import BasePlugin
 from djangoblog.plugin_manage.hook_constants import *
@@ -211,6 +212,31 @@ class SEOOptimizerPluginTest(BaseTestCase, PluginTestMixin):
         self.assertEqual(response.status_code, 200)
         # 应该包含 meta 标签
         self.assertContains(response, '<meta')
+
+    def test_seo_optimizer_uses_english_article_fields(self):
+        """测试 SEO 插件在英文页面使用英文字段生成 OG 和 JSON-LD"""
+        self.article.title_en = 'English SEO Plugin Title'
+        self.article.body_en = 'English SEO plugin body'
+        self.article.save(update_fields=['title_en', 'body_en', 'last_modify_time'])
+        self.category.name_en = 'English SEO Category'
+        self.category.save(update_fields=['name_en'])
+        self.tag.name_en = 'English SEO Tag'
+        self.tag.save(update_fields=['name_en'])
+        self.article.tags.add(self.tag)
+        self.blog_settings.site_name_en = 'English Plugin Site'
+        self.blog_settings.site_description_en = 'English plugin site description'
+        self.blog_settings.save(update_fields=['site_name_en', 'site_description_en'])
+
+        with translation.override('en'):
+            response = self.client.get(self.article.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'English SEO Plugin Title')
+        self.assertContains(response, 'English SEO plugin body')
+        self.assertContains(response, 'English SEO Category')
+        self.assertContains(response, 'English SEO Tag')
+        self.assertContains(response, 'English Plugin Site')
+        self.assertNotContains(response, f'"headline": "{self.article.title}"')
 
 
 class ArticleCopyrightPluginTest(BaseTestCase, PluginTestMixin):

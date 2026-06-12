@@ -1,6 +1,6 @@
 import json
 from django.utils.html import strip_tags
-from django.template.defaultfilters import truncatewords
+from django.utils import translation
 from djangoblog.plugin_manage.base_plugin import BasePlugin
 from djangoblog.plugin_manage import hooks
 from blog.models import Article, Category, Tag
@@ -25,9 +25,16 @@ class SeoOptimizerPlugin(BasePlugin):
         from django.utils.text import Truncator
         from djangoblog.utils import CommonMarkdown
         
-        # 处理description：markdown -> HTML -> 纯文本，彻底去除格式
-        html_content = CommonMarkdown.get_markdown(article.body)
-        description = strip_tags(html_content)
+        article_title = article.get_title()
+        article_body = article.get_body()
+        article_category = article.category.get_name()
+        site_name = blog_setting.get_site_name()
+
+        if article.get_seo_description():
+            description = article.get_seo_description()
+        else:
+            html_content = CommonMarkdown.get_markdown(article_body)
+            description = strip_tags(html_content)
         description = ' '.join(description.split())
         description = Truncator(description).chars(150, truncate='...')
         description_escaped = escape(description)
@@ -37,33 +44,33 @@ class SeoOptimizerPlugin(BasePlugin):
         article_url = article.get_full_url()
         meta_tags = f'''
         <meta property="og:type" content="article"/>
-        <meta property="og:title" content="{escape(article.title)}"/>
+        <meta property="og:title" content="{escape(article_title)}"/>
         <meta property="og:description" content="{description_escaped}"/>
         <meta property="og:url" content="{article_url}"/>
         <meta property="article:published_time" content="{article.pub_time.isoformat()}"/>
         <meta property="article:modified_time" content="{article.last_modify_time.isoformat()}"/>
         <meta property="article:author" content="{escape(article.author.username)}"/>
-        <meta property="article:section" content="{escape(article.category.name)}"/>
+        <meta property="article:section" content="{escape(article_category)}"/>
         '''
         for tag in article.tags.all():
-            meta_tags += f'<meta property="article:tag" content="{escape(tag.name)}"/>'
-        meta_tags += f'<meta property="og:site_name" content="{escape(blog_setting.site_name)}"/>'
+            meta_tags += f'<meta property="article:tag" content="{escape(tag.get_name())}"/>'
+        meta_tags += f'<meta property="og:site_name" content="{escape(site_name)}"/>'
 
         # JSON-LD 结构化数据
+        first_image_url = article.get_first_image_url()
         structured_data = {
             "@context": "https://schema.org",
             "@type": "Article",
             "mainEntityOfPage": {"@type": "WebPage", "@id": article_url},
-            "headline": article.title,
+            "headline": article_title,
             "description": description,
-            "image": request.build_absolute_uri(article.get_first_image_url()),
             "datePublished": article.pub_time.isoformat(),
             "dateModified": article.last_modify_time.isoformat(),
             "author": {"@type": "Person", "name": article.author.username},
-            "publisher": {"@type": "Organization", "name": blog_setting.site_name}
+            "publisher": {"@type": "Organization", "name": site_name}
         }
-        if not structured_data.get("image"):
-            del structured_data["image"]
+        if first_image_url:
+            structured_data["image"] = request.build_absolute_uri(first_image_url)
 
         return {
             "meta_tags": meta_tags,
@@ -75,14 +82,15 @@ class SeoOptimizerPlugin(BasePlugin):
         if not category_name:
             return None
         
-        category = Category.objects.filter(name=category_name).first()
+        category = Category.objects.filter(name=category_name).first() or Category.objects.filter(name_en=category_name).first()
         if not category:
             return None
+        localized_category_name = category.get_name()
 
         # BreadcrumbList 结构化数据
         breadcrumb_items = [
-            {"@type": "ListItem", "position": 1, "name": "首页", "item": request.build_absolute_uri('/')},
-            {"@type": "ListItem", "position": 2, "name": category.name, "item": request.build_absolute_uri()}
+            {"@type": "ListItem", "position": 1, "name": blog_setting.get_site_name(), "item": request.build_absolute_uri('/')},
+            {"@type": "ListItem", "position": 2, "name": localized_category_name, "item": request.build_absolute_uri()}
         ]
         
         structured_data = {
@@ -108,9 +116,9 @@ class SeoOptimizerPlugin(BasePlugin):
 
         # BreadcrumbList 结构化数据
         breadcrumb_items = [
-            {"@type": "ListItem", "position": 1, "name": "首页", "item": request.build_absolute_uri('/')},
-            {"@type": "ListItem", "position": 2, "name": "标签", "item": request.build_absolute_uri('/tag/')},
-            {"@type": "ListItem", "position": 3, "name": tag.name, "item": request.build_absolute_uri()}
+            {"@type": "ListItem", "position": 1, "name": blog_setting.get_site_name(), "item": request.build_absolute_uri('/')},
+            {"@type": "ListItem", "position": 2, "name": "Tags" if translation.get_language().startswith('en') else "标签", "item": request.build_absolute_uri('/tag/')},
+            {"@type": "ListItem", "position": 3, "name": tag.get_name(), "item": request.build_absolute_uri()}
         ]
         
         structured_data = {
@@ -132,8 +140,8 @@ class SeoOptimizerPlugin(BasePlugin):
 
         # BreadcrumbList 结构化数据
         breadcrumb_items = [
-            {"@type": "ListItem", "position": 1, "name": "首页", "item": request.build_absolute_uri('/')},
-            {"@type": "ListItem", "position": 2, "name": "作者", "item": request.build_absolute_uri('/author/')},
+            {"@type": "ListItem", "position": 1, "name": blog_setting.get_site_name(), "item": request.build_absolute_uri('/')},
+            {"@type": "ListItem", "position": 2, "name": "Authors" if translation.get_language().startswith('en') else "作者", "item": request.build_absolute_uri('/author/')},
             {"@type": "ListItem", "position": 3, "name": author_name, "item": request.build_absolute_uri()}
         ]
         
@@ -153,8 +161,8 @@ class SeoOptimizerPlugin(BasePlugin):
         structured_data = {
             "@context": "https://schema.org",
             "@type": "WebSite",
-            "name": blog_setting.site_name,
-            "description": blog_setting.site_description,
+            "name": blog_setting.get_site_name(),
+            "description": blog_setting.get_site_description(),
             "url": request.build_absolute_uri('/'),
             "potentialAction": {
                 "@type": "SearchAction",

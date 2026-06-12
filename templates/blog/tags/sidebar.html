@@ -72,7 +72,7 @@
             <div class="flex flex-wrap gap-2">
                 {% for tag, count, size in sidebar_tags %}
                     <a href="{{ tag.get_absolute_url }}" class="editorial-tag">
-                        {{ tag.name }} <span class="opacity-60">{{ count }}</span>
+                        {{ tag.get_name }} <span class="opacity-60">{{ count }}</span>
                     </a>
                 {% endfor %}
             </div>

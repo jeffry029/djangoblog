@@ -123,6 +123,8 @@ class ArticlelAdmin(admin.ModelAdmin):
 
 
 class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'name_en')
+    search_fields = ('name', 'name_en')
     exclude = ('slug', 'last_mod_time', 'creation_time')
 
 

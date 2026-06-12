@@ -84,8 +84,8 @@ class IndexView(OptimizedArticleQueryMixin, ArticleListView):
         context = super().get_context_data(**kwargs)
         blog_setting = get_blog_setting()
         # 提供基础SEO数据
-        context['seo_title'] = _("Developer Radar")
-        context['seo_description'] = _("AI-curated technical articles, programming practices, and artificial intelligence news.")
+        context['seo_title'] = blog_setting.get_site_name()
+        context['seo_description'] = blog_setting.get_site_seo_description()
         context['seo_keywords'] = blog_setting.site_keywords
         return context
 
@@ -271,11 +271,20 @@ class ArticleDetailView(DetailView):
         context['seo_title'] = f"{article.get_title()} | {blog_setting.get_site_name()}"
         context['seo_description'] = description
         context['seo_keywords'] = keywords
-        context['canonical_url'] = article.get_full_url_for_language(translation.get_language() or settings.LANGUAGE_CODE)
-        context['alternate_urls'] = {
+        current_language = translation.get_language() or settings.LANGUAGE_CODE
+        has_english_content = article.has_english_content()
+        if article._is_english_language(current_language) and not has_english_content:
+            context['canonical_url'] = article.get_full_url_for_language(settings.LANGUAGE_CODE)
+            context['robots_meta'] = 'noindex, follow'
+        else:
+            context['canonical_url'] = article.get_full_url_for_language(current_language)
+
+        alternate_urls = {
             'zh_hans': article.get_full_url_for_language('zh-hans'),
-            'en': article.get_full_url_for_language('en'),
         }
+        if has_english_content:
+            alternate_urls['en'] = article.get_full_url_for_language('en')
+        context['alternate_urls'] = alternate_urls
         
         # 触发文章详情加载钩子，让插件可以添加额外的上下文数据
         from djangoblog.plugin_manage.hook_constants import ARTICLE_DETAIL_LOAD
@@ -322,6 +331,7 @@ class CategoryDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleLis
 
         kwargs['page_type'] = CategoryDetailView.page_type
         kwargs['tag_name'] = categoryname
+        kwargs['pagination_slug'] = category.slug
         
         # 添加基础SEO数据
         blog_setting = get_blog_setting()
@@ -406,22 +416,24 @@ class TagDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleListView
 
     def get_context_data(self, **kwargs):
         tag = self.get_slug_object()
+        tag_name = tag.get_name()
         kwargs['page_type'] = TagDetailView.page_type
-        kwargs['tag_name'] = tag.name
+        kwargs['tag_name'] = tag_name
+        kwargs['pagination_slug'] = tag.slug
         
         # 添加基础SEO数据
         blog_setting = get_blog_setting()
         article_count = self.get_queryset().count()
-        kwargs['seo_title'] = f"{tag.name} | {blog_setting.get_site_name()}"
+        kwargs['seo_title'] = f"{tag_name} | {blog_setting.get_site_name()}"
         kwargs['seo_description'] = ngettext(
             'Browse all articles about %(tag)s, %(count)s article total.',
             'Browse all articles about %(tag)s, %(count)s articles total.',
             article_count,
         ) % {
-            'tag': tag.name,
+            'tag': tag_name,
             'count': article_count,
         }
-        kwargs['seo_keywords'] = f"{tag.name}, {blog_setting.site_keywords}"
+        kwargs['seo_keywords'] = f"{tag_name}, {blog_setting.site_keywords}"
         
         return super(TagDetailView, self).get_context_data(**kwargs)
 

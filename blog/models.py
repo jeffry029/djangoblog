@@ -325,9 +325,18 @@ class Category(BaseModel):
 class Tag(BaseModel):
     """文章标签"""
     name = models.CharField(_('tag name'), max_length=30, unique=True)
+    name_en = models.CharField(_('English tag name'), max_length=60, blank=True, default='')
     slug = models.SlugField(default='no-slug', max_length=60, blank=True)
 
     def __str__(self):
+        return self.name
+
+    def get_name(self, language_code=None):
+        language_code = language_code or translation.get_language() or settings.LANGUAGE_CODE
+        if language_code.lower().startswith('en'):
+            name = (self.name_en or '').strip()
+            if name:
+                return name
         return self.name
 
     def get_absolute_url(self):

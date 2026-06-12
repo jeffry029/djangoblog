@@ -38,7 +38,7 @@
         <div class="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex flex-wrap gap-2">
                 {% for tag in article.tags.all|slice:":3" %}
-                    <a href="{{ tag.get_absolute_url }}" class="editorial-tag"># {{ tag.name }}</a>
+                    <a href="{{ tag.get_absolute_url }}" class="editorial-tag"># {{ tag.get_name }}</a>
                 {% endfor %}
             </div>
 

@@ -14,7 +14,7 @@
     <meta name="format-detection" content="telephone=no"/>
     <meta name="theme-color" content="#fbf8fc" media="(prefers-color-scheme: light)"/>
     <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)"/>
-    <meta name="robots" content="index, follow"/>
+    <meta name="robots" content="{{ robots_meta|default:'index, follow' }}"/>
     {% head_meta %}
     {% block header %}
         <title>{{ seo_title|default:SITE_NAME }}</title>

@@ -117,16 +117,22 @@
             </button>
 
             {% get_current_language as CURRENT_LANGUAGE %}
-            <form action="{% url 'set_language' %}" method="post" class="hidden sm:block">
+            {% localized_next_url 'zh-hans' as NEXT_ZH %}
+            {% localized_next_url 'en' as NEXT_EN %}
+            <form action="{% url 'set_language' %}" method="post" class="hidden items-center rounded-lg border border-border/50 bg-secondary p-0.5 sm:flex" aria-label="{% trans 'Language' %}">
                 {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.get_full_path }}"/>
-                <select name="language"
-                        aria-label="{% trans 'Language' %}"
-                        onchange="this.form.elements['next'].value = this.options[this.selectedIndex].dataset.nextUrl; this.form.submit()"
-                        class="h-9 rounded-lg border border-border/50 bg-secondary px-2 text-[13px] font-medium text-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600/50">
-                    <option value="zh-hans" data-next-url="{% localized_next_url 'zh-hans' %}" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
-                    <option value="en" data-next-url="{% localized_next_url 'en' %}" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>EN</option>
-                </select>
+                <button type="submit"
+                        name="language"
+                        value="zh-hans"
+                        formaction="{% url 'set_language' %}?next={{ NEXT_ZH|urlencode }}"
+                        class="rounded-md px-2 py-1 text-[13px] font-medium transition-colors {% if CURRENT_LANGUAGE == 'zh-hans' %}bg-card text-primary-600 shadow-sm{% else %}text-muted-foreground hover:text-primary-600{% endif %}"
+                        {% if CURRENT_LANGUAGE == 'zh-hans' %}aria-current="true"{% endif %}>中文</button>
+                <button type="submit"
+                        name="language"
+                        value="en"
+                        formaction="{% url 'set_language' %}?next={{ NEXT_EN|urlencode }}"
+                        class="rounded-md px-2 py-1 text-[13px] font-medium transition-colors {% if CURRENT_LANGUAGE == 'en' %}bg-card text-primary-600 shadow-sm{% else %}text-muted-foreground hover:text-primary-600{% endif %}"
+                        {% if CURRENT_LANGUAGE == 'en' %}aria-current="true"{% endif %}>EN</button>
             </form>
 
             <button class="flex size-9 items-center justify-center rounded-lg text-primary-600 transition-colors hover:bg-secondary lg:hidden"
@@ -190,13 +196,24 @@
             {% endfor %}
             <form action="{% url 'set_language' %}" method="post" class="mt-2 flex items-center gap-2 rounded-lg bg-secondary px-3 py-2">
                 {% csrf_token %}
-                <input name="next" type="hidden" value="{{ request.get_full_path }}"/>
-                <label for="mobile-language-select" class="text-sm font-medium text-muted-foreground">{% trans 'Language' %}</label>
+                <span class="text-sm font-medium text-muted-foreground">{% trans 'Language' %}</span>
                 {% get_current_language as CURRENT_LANGUAGE %}
-                <select id="mobile-language-select" name="language" onchange="this.form.elements['next'].value = this.options[this.selectedIndex].dataset.nextUrl; this.form.submit()" class="min-w-0 flex-1 bg-transparent text-sm text-foreground focus:outline-none">
-                    <option value="zh-hans" data-next-url="{% localized_next_url 'zh-hans' %}" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
-                    <option value="en" data-next-url="{% localized_next_url 'en' %}" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>English</option>
-                </select>
+                {% localized_next_url 'zh-hans' as MOBILE_NEXT_ZH %}
+                {% localized_next_url 'en' as MOBILE_NEXT_EN %}
+                <div class="ml-auto flex rounded-lg border border-border/50 bg-background p-0.5">
+                    <button type="submit"
+                            name="language"
+                            value="zh-hans"
+                            formaction="{% url 'set_language' %}?next={{ MOBILE_NEXT_ZH|urlencode }}"
+                            class="rounded-md px-2 py-1 text-sm font-medium {% if CURRENT_LANGUAGE == 'zh-hans' %}bg-secondary text-primary-600{% else %}text-muted-foreground{% endif %}"
+                            {% if CURRENT_LANGUAGE == 'zh-hans' %}aria-current="true"{% endif %}>中文</button>
+                    <button type="submit"
+                            name="language"
+                            value="en"
+                            formaction="{% url 'set_language' %}?next={{ MOBILE_NEXT_EN|urlencode }}"
+                            class="rounded-md px-2 py-1 text-sm font-medium {% if CURRENT_LANGUAGE == 'en' %}bg-secondary text-primary-600{% else %}text-muted-foreground{% endif %}"
+                            {% if CURRENT_LANGUAGE == 'en' %}aria-current="true"{% endif %}>English</button>
+                </div>
             </form>
         </div>
     </nav>

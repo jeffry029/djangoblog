@@ -18,8 +18,8 @@ from servermanager.models import *
 
 
 class DjangoBlogAdminSite(AdminSite):
-    site_header = '博客小站管理后台'
-    site_title = '博客小站后台'
+    site_header = '开发者雷达管理后台'
+    site_title = '开发者雷达后台'
 
     def __init__(self, name='admin'):
         super().__init__(name)

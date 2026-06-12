@@ -319,6 +319,13 @@ if os.environ.get("DJANGO_REDIS_URL"):
 SITE_ID = 1
 BAIDU_NOTIFY_URL = os.environ.get('DJANGO_BAIDU_NOTIFY_URL') \
                    or 'http://data.zz.baidu.com/urls?site=https://www.lylinux.net&token=1uAOGrMsUm5syDGn'
+INDEXNOW_KEY_FILE_PATH = os.environ.get('INDEXNOW_KEY_FILE_PATH') \
+                         or str(BASE_DIR / '02df0b82d7dc40abbe3e3d74b9b965ac.txt')
+INDEXNOW_KEY = os.environ.get('INDEXNOW_KEY') or Path(INDEXNOW_KEY_FILE_PATH).stem
+INDEXNOW_HOST = os.environ.get('INDEXNOW_HOST') or ''
+INDEXNOW_KEY_LOCATION = os.environ.get('INDEXNOW_KEY_LOCATION') or ''
+INDEXNOW_ENDPOINT = os.environ.get('INDEXNOW_ENDPOINT') or 'https://api.indexnow.org/indexnow'
+INDEXNOW_REQUEST_TIMEOUT = int(os.environ.get('INDEXNOW_REQUEST_TIMEOUT') or 10)
 
 # Email:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

@@ -8,17 +8,17 @@
     </h3>
     <ul class="grid gap-3 sm:grid-cols-2 m-0 p-0 list-none">
         {% for article in recommendations %}
-            {% if article.title and article.title|length > 0 %}
+            {% if article.get_title and article.get_title|length > 0 %}
                 <li>
-                    <a href="{{ article.get_absolute_url }}" title="{{ article.title }}"
+                    <a href="{{ article.get_absolute_url }}" title="{{ article.get_title }}"
                        class="group flex h-full flex-col gap-2 rounded-lg border border-border bg-background p-3 transition-colors hover:border-primary/40 hover:bg-secondary">
                         <span class="line-clamp-2 text-sm font-medium leading-snug text-foreground transition-colors group-hover:text-primary">
-                            {{ article.title|truncatechars:45 }}
+                            {{ article.get_title|truncatechars:45 }}
                         </span>
                         <span class="flex items-center gap-2 text-[11px] text-muted-foreground">
                             {% if article.category %}
                                 <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-primary">
-                                    {{ article.category.name }}
+                                    {{ article.category.get_name }}
                                 </span>
                             {% endif %}
                             <span>{{ article.pub_time|date:"m-d" }}</span>

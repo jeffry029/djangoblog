@@ -1,7 +1,8 @@
+{% load i18n %}
 {% if page_obj.paginator.num_pages > 1 %}
-<nav class="mt-10 flex items-center justify-center gap-2 pt-2" role="navigation" aria-label="分页导航">
+<nav class="mt-10 flex items-center justify-center gap-2 pt-2" role="navigation" aria-label="{% trans 'Pagination' %}">
     {% if page_obj.has_previous and previous_url %}
-        <a href="{{ previous_url }}" class="editorial-page-button" rel="prev" aria-label="上一页">
+        <a href="{{ previous_url }}" class="editorial-page-button" rel="prev" aria-label="{% trans 'Previous page' %}">
             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -25,7 +26,7 @@
     {% endfor %}
 
     {% if page_obj.has_next and next_url %}
-        <a href="{{ next_url }}" class="editorial-page-button" rel="next" aria-label="下一页">
+        <a href="{{ next_url }}" class="editorial-page-button" rel="next" aria-label="{% trans 'Next page' %}">
             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>

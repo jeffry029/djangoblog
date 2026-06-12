@@ -41,17 +41,19 @@ open_article_commentstatus.short_description = _('Open article comments')
 
 class ArticlelAdmin(admin.ModelAdmin):
     list_per_page = 20
-    search_fields = ('body', 'title')
+    search_fields = ('body', 'title', 'body_en', 'title_en')
     form = ArticleForm
     list_display = (
         'id',
         'title',
+        'title_en',
         'author',
         'link_to_category',
         'creation_time',
         'views',
         'status',
         'type',
+        'has_english_version',
         'article_order')
     list_display_links = ('id', 'title')
     list_filter = ('status', 'type', 'category')
@@ -66,12 +68,40 @@ class ArticlelAdmin(admin.ModelAdmin):
         open_article_commentstatus]
     raw_id_fields = ('author', 'category',)
 
+    fieldsets = (
+        (None, {
+            'fields': (
+                'title',
+                'body',
+                'title_en',
+                'body_en',
+                'seo_description_en',
+                'pub_time',
+                'status',
+                'comment_status',
+                'type',
+                'views',
+                'author',
+                'article_order',
+                'show_toc',
+                'category',
+                'tags',
+            )
+        }),
+    )
+
     def link_to_category(self, obj):
         info = (obj.category._meta.app_label, obj.category._meta.model_name)
         link = reverse('admin:%s_%s_change' % info, args=(obj.category.id,))
         return format_html(u'<a href="%s">%s</a>' % (link, obj.category.name))
 
     link_to_category.short_description = _('category')
+
+    def has_english_version(self, obj):
+        return obj.has_english_content()
+
+    has_english_version.boolean = True
+    has_english_version.short_description = _('English version')
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(ArticlelAdmin, self).get_form(request, obj, **kwargs)
@@ -97,7 +127,8 @@ class TagAdmin(admin.ModelAdmin):
 
 
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent_category', 'index')
+    list_display = ('name', 'name_en', 'parent_category', 'index')
+    search_fields = ('name', 'name_en')
     exclude = ('slug', 'last_mod_time', 'creation_time')
 
 
@@ -119,6 +150,48 @@ class SideBarAdmin(admin.ModelAdmin):
 
 class BlogSettingsAdmin(admin.ModelAdmin):
     """单例配置Admin - 直接跳转到编辑页面"""
+
+    fieldsets = (
+        (_('Site identity'), {
+            'fields': (
+                'site_name',
+                'site_name_en',
+                'site_description',
+                'site_description_en',
+                'site_seo_description',
+                'site_seo_description_en',
+                'site_keywords',
+            )
+        }),
+        (_('Content display'), {
+            'fields': (
+                'article_sub_length',
+                'sidebar_article_count',
+                'sidebar_comment_count',
+                'article_comment_count',
+                'open_site_comment',
+                'comment_need_review',
+                'show_api_promo',
+                'color_scheme',
+            )
+        }),
+        (_('Integrations'), {
+            'fields': (
+                'show_google_adsense',
+                'google_adsense_codes',
+                'analytics_code',
+                'beian_code',
+                'show_gongan_code',
+                'gongan_beiancode',
+            )
+        }),
+        (_('Custom HTML'), {
+            'fields': (
+                'global_header',
+                'global_footer',
+            )
+        }),
+    )
 
     def has_add_permission(self, request):
         """如果已经存在配置，则禁止添加"""

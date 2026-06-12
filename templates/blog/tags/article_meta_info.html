@@ -3,7 +3,7 @@
 
 <footer class="entry-meta">
     {% trans 'posted in' %}
-    <a href="{{ article.category.get_absolute_url }}" rel="category tag">{{ article.category.name }}</a>{% if article.type == 'a' %}{% if article.tags.all %} {% trans 'and tagged' %}
+    <a href="{{ article.category.get_absolute_url }}" rel="category tag">{{ article.category.get_name }}</a>{% if article.type == 'a' %}{% if article.tags.all %} {% trans 'and tagged' %}
         {% for t in article.tags.all %}<a href="{{ t.get_absolute_url }}" rel="tag">{{ t.name }}</a>{% if t != article.tags.all.last %}, {% endif %}{% endfor %}{% endif %}{% endif %}.{% trans 'by ' %}
     <span class="by-author">
         <span class="author vcard">
@@ -27,5 +27,4 @@
         <a href="{{ article.get_admin_url }}">{% trans 'edit' %}</a>{% endif %}
     </span>
 </footer><!-- .entry-meta -->
-
 

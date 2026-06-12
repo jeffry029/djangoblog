@@ -9,7 +9,7 @@
     </a>
     <div class="mx-auto flex h-16 max-w-container-max items-center justify-between gap-6 px-4 md:px-8">
         <div class="flex min-w-0 items-center gap-8">
-            <a href="/" class="group flex shrink-0 flex-col leading-none" aria-label="{{ SITE_NAME }}">
+            <a href="{% url 'blog:index' %}" class="group flex shrink-0 flex-col leading-none" aria-label="{{ SITE_NAME }}">
                 <span class="font-headline text-[1.35rem] font-extrabold tracking-tight text-primary-600 transition-colors group-hover:text-primary-500">
                     {{ SITE_NAME }}
                 </span>
@@ -27,7 +27,7 @@
                 <a href="{% url 'blog:index' %}"
                    class="editorial-nav-link {% if current_url == 'index' or current_url == 'index_page' %}is-active{% endif %}"
                    {% if current_url == 'index' or current_url == 'index_page' %}aria-current="page"{% endif %}>
-                    技术摘要
+                    {% trans 'Tech Briefs' %}
                 </a>
 
                 {% query nav_category_list parent_category__isnull=True as nav_top_cats %}
@@ -41,7 +41,7 @@
                                     :aria-expanded="open.toString()"
                                     aria-haspopup="true"
                                     class="editorial-nav-link inline-flex items-center gap-1 {% if request.path == category.get_absolute_url %}is-active{% endif %}">
-                                {{ category.name }}
+                                {{ category.get_name }}
                                 <svg class="size-3.5 transition-transform duration-200" :class="open ? 'rotate-180' : ''" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -60,7 +60,7 @@
                                     <a href="{{ child.get_absolute_url }}"
                                        @click="open = false"
                                        class="flex items-center justify-between rounded-md px-3 py-2 text-sm text-foreground transition-colors hover:bg-secondary hover:text-primary-600">
-                                        <span>{{ child.name }}</span>
+                                        <span>{{ child.get_name }}</span>
                                         <span class="text-xs text-muted-foreground tabular-nums">{{ child.article_set.count }}</span>
                                     </a>
                                 {% endfor %}
@@ -69,7 +69,7 @@
                     {% else %}
                         <a href="{{ category.get_absolute_url }}"
                            class="editorial-nav-link {% if request.path == category.get_absolute_url %}is-active{% endif %}">
-                            {{ category.name }}
+                            {{ category.get_name }}
                         </a>
                     {% endif %}
                     {% endif %}
@@ -78,13 +78,13 @@
                 <a href="{% url 'blog:news' %}"
                    class="editorial-nav-link {% if current_url == 'news' %}is-active{% endif %}"
                    {% if current_url == 'news' %}aria-current="page"{% endif %}>
-                    AI 快讯
+                    {% trans 'AI News' %}
                 </a>
                 {% for page in nav_pages %}
                     <a href="{{ page.get_absolute_url }}"
                        class="editorial-nav-link {% if request.path == page.get_absolute_url %}is-active{% endif %}"
                        {% if request.path == page.get_absolute_url %}aria-current="page"{% endif %}>
-                        {{ page.title }}
+                        {{ page.get_title }}
                     </a>
                 {% endfor %}
                 {% endwith %}
@@ -97,8 +97,8 @@
                 <input id="header-search-input"
                        name="q"
                        type="search"
-                       placeholder="搜索技术摘要/快讯..."
-                       aria-label="搜索技术摘要和 AI 快讯"
+                       placeholder="{% trans 'Search tech briefs/news...' %}"
+                       aria-label="{% trans 'Search tech briefs and AI news' %}"
                        class="min-w-0 flex-1 appearance-none border-0 bg-transparent p-0 text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none"/>
                 <svg class="size-4 shrink-0 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
@@ -115,6 +115,19 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
                 </svg>
             </button>
+
+            {% get_current_language as CURRENT_LANGUAGE %}
+            <form action="{% url 'set_language' %}" method="post" class="hidden sm:block">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ request.get_full_path }}"/>
+                <select name="language"
+                        aria-label="{% trans 'Language' %}"
+                        onchange="this.form.submit()"
+                        class="h-9 rounded-lg border border-border/50 bg-secondary px-2 text-[13px] font-medium text-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600/50">
+                    <option value="zh-hans" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
+                    <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>EN</option>
+                </select>
+            </form>
 
             <button class="flex size-9 items-center justify-center rounded-lg text-primary-600 transition-colors hover:bg-secondary lg:hidden"
                     @click="$store.nav.mobileOpen = !$store.nav.mobileOpen"
@@ -139,12 +152,12 @@
          x-cloak>
         <div class="mx-auto flex max-w-container-max flex-col gap-1">
             <form action="{% url 'search' %}" method="get" class="mb-2 flex items-center gap-2 rounded-lg bg-secondary px-3 py-2">
-                <input name="q" type="search" placeholder="搜索技术摘要/快讯..." aria-label="搜索技术摘要和 AI 快讯" class="min-w-0 flex-1 appearance-none border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"/>
+                <input name="q" type="search" placeholder="{% trans 'Search tech briefs/news...' %}" aria-label="{% trans 'Search tech briefs and AI news' %}" class="min-w-0 flex-1 appearance-none border-0 bg-transparent p-0 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"/>
                 <svg class="size-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </form>
-            <a href="{% url 'blog:index' %}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">技术摘要</a>
+            <a href="{% url 'blog:index' %}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">{% trans 'Tech Briefs' %}</a>
             {% query nav_category_list parent_category__isnull=True as mobile_top_cats %}
             {% for category in mobile_top_cats %}
                 {% if category.name == "文章" %}
@@ -153,7 +166,7 @@
                 {% if mobile_children %}
                     <div x-data="{ mobileSubOpen: false }">
                         <div class="flex items-center">
-                            <a href="{{ category.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link flex-1">{{ category.name }}</a>
+                            <a href="{{ category.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link flex-1">{{ category.get_name }}</a>
                             <button @click="mobileSubOpen = !mobileSubOpen" :aria-expanded="mobileSubOpen.toString()" aria-label="{% trans 'Expand subcategories' %}" class="flex size-9 items-center justify-center rounded-lg text-muted-foreground">
                                 <svg class="size-3.5 transition-transform duration-200" :class="mobileSubOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -162,19 +175,29 @@
                         </div>
                         <div x-show="mobileSubOpen" x-transition class="ml-3 border-l border-border pl-3" x-cloak>
                             {% for child in mobile_children %}
-                                <a href="{{ child.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link text-muted-foreground">{{ child.name }}</a>
+                                <a href="{{ child.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link text-muted-foreground">{{ child.get_name }}</a>
                             {% endfor %}
                         </div>
                     </div>
                 {% else %}
-                    <a href="{{ category.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">{{ category.name }}</a>
+                    <a href="{{ category.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">{{ category.get_name }}</a>
                 {% endif %}
                 {% endif %}
             {% endfor %}
-            <a href="{% url 'blog:news' %}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">AI 快讯</a>
+            <a href="{% url 'blog:news' %}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">{% trans 'AI News' %}</a>
             {% for page in nav_pages %}
-                <a href="{{ page.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">{{ page.title }}</a>
+                <a href="{{ page.get_absolute_url }}" @click="$store.nav.mobileOpen = false" class="editorial-mobile-link">{{ page.get_title }}</a>
             {% endfor %}
+            <form action="{% url 'set_language' %}" method="post" class="mt-2 flex items-center gap-2 rounded-lg bg-secondary px-3 py-2">
+                {% csrf_token %}
+                <input name="next" type="hidden" value="{{ request.get_full_path }}"/>
+                <label for="mobile-language-select" class="text-sm font-medium text-muted-foreground">{% trans 'Language' %}</label>
+                {% get_current_language as CURRENT_LANGUAGE %}
+                <select id="mobile-language-select" name="language" onchange="this.form.submit()" class="min-w-0 flex-1 bg-transparent text-sm text-foreground focus:outline-none">
+                    <option value="zh-hans" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
+                    <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>English</option>
+                </select>
+            </form>
         </div>
     </nav>
 </header>

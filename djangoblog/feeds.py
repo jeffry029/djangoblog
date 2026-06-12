@@ -24,10 +24,10 @@ class DjangoBlogFeed(Feed):
         return Article.objects.filter(type='a', status='p').order_by('-pub_time')[:5]
 
     def item_title(self, item):
-        return item.title
+        return item.get_title()
 
     def item_description(self, item):
-        return CommonMarkdown.get_markdown(item.body)
+        return CommonMarkdown.get_markdown(item.get_body())
 
     def feed_copyright(self):
         now = timezone.now()

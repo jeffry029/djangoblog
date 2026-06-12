@@ -7,6 +7,8 @@ class ArticleIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     title = indexes.CharField(model_attr='title', stored=True)
     body = indexes.CharField(model_attr='body', stored=True)
+    title_en = indexes.CharField(model_attr='title_en', stored=True, null=True)
+    body_en = indexes.CharField(model_attr='body_en', stored=True, null=True)
 
     def get_model(self):
         return Article

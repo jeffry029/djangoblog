@@ -148,6 +148,11 @@ def parse_dict_to_url(dict):
 
 
 def get_blog_setting():
+    default_site_identity = {
+        'site_name_en': 'Developer Radar',
+        'site_description_en': 'AI-curated technical articles, programming practices, and artificial intelligence news.',
+        'site_seo_description_en': 'AI-curated technical articles, programming practices, and artificial intelligence news.',
+    }
     value = cache.get('get_blog_setting')
     if value:
         return value
@@ -156,8 +161,11 @@ def get_blog_setting():
         if not BlogSettings.objects.count():
             setting = BlogSettings()
             setting.site_name = '开发者雷达'
+            setting.site_name_en = default_site_identity['site_name_en']
             setting.site_description = 'AI 精选与摘要技术文章、编程实践和人工智能新闻。'
+            setting.site_description_en = default_site_identity['site_description_en']
             setting.site_seo_description = 'AI 精选与摘要技术文章、编程实践和人工智能新闻。'
+            setting.site_seo_description_en = default_site_identity['site_seo_description_en']
             setting.site_keywords = 'AI,技术摘要,编程实践,人工智能新闻'
             setting.article_sub_length = 300
             setting.sidebar_article_count = 10
@@ -170,6 +178,13 @@ def get_blog_setting():
             setting.comment_need_review = False
             setting.save()
         value = BlogSettings.objects.first()
+        update_fields = []
+        for field_name, default_value in default_site_identity.items():
+            if not (getattr(value, field_name) or '').strip():
+                setattr(value, field_name, default_value)
+                update_fields.append(field_name)
+        if update_fields:
+            value.save(update_fields=update_fields)
         logger.info('set cache get_blog_setting')
         cache.set('get_blog_setting', value)
         return value

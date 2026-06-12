@@ -5,6 +5,7 @@ Test cases for article business logic
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.utils import timezone
+from django.utils import translation
 
 from accounts.models import BlogUser
 from blog.models import Article, Category
@@ -187,6 +188,69 @@ class ArticleLifecycleTest(TestCase):
 
         article.refresh_from_db()
         self.assertEqual(article.views, 10)
+
+
+class ArticleBilingualContentTest(TestCase):
+    """测试文章中英文内容存储和语言感知读取"""
+
+    def setUp(self):
+        self.category = Category.objects.create(name='Bilingual', slug='bilingual')
+        self.author = BlogUser.objects.create_user(
+            username='bilingual-author',
+            email='bilingual@example.com',
+            password='password'
+        )
+
+    def create_article(self, **kwargs):
+        defaults = {
+            'title': '中文标题',
+            'body': '中文正文',
+            'title_en': 'English Title',
+            'body_en': 'English body',
+            'seo_description_en': 'English SEO summary',
+            'author': self.author,
+            'category': self.category,
+            'status': 'p',
+            'type': 'a',
+        }
+        defaults.update(kwargs)
+        return Article.objects.create(**defaults)
+
+    def test_article_persists_bilingual_fields(self):
+        article = self.create_article()
+
+        article.refresh_from_db()
+
+        self.assertEqual(article.title, '中文标题')
+        self.assertEqual(article.body, '中文正文')
+        self.assertEqual(article.title_en, 'English Title')
+        self.assertEqual(article.body_en, 'English body')
+        self.assertEqual(article.seo_description_en, 'English SEO summary')
+
+    def test_article_uses_english_content_for_english_language(self):
+        article = self.create_article()
+
+        with translation.override('en'):
+            self.assertEqual(article.get_title(), 'English Title')
+            self.assertEqual(article.get_body(), 'English body')
+            self.assertEqual(article.get_seo_description(), 'English SEO summary')
+            self.assertTrue(article.has_english_content())
+
+    def test_article_falls_back_to_chinese_when_english_missing(self):
+        article = self.create_article(title_en='', body_en='', seo_description_en='')
+
+        with translation.override('en'):
+            self.assertEqual(article.get_title(), '中文标题')
+            self.assertEqual(article.get_body(), '中文正文')
+            self.assertEqual(article.get_seo_description(), '')
+            self.assertFalse(article.has_english_content())
+
+    def test_article_uses_chinese_content_for_chinese_language(self):
+        article = self.create_article()
+
+        with translation.override('zh-hans'):
+            self.assertEqual(article.get_title(), '中文标题')
+            self.assertEqual(article.get_body(), '中文正文')
 
 
 class ArticleCommentStatusTest(TestCase):
@@ -432,6 +496,19 @@ class ArticleCategoryTagTest(TestCase):
         )
 
         self.assertEqual(article.category, self.category)
+
+    def test_category_get_name_uses_english_when_available(self):
+        """测试英文语言下分类名优先使用英文配置"""
+        self.category.name_en = 'English Category'
+        self.category.save(update_fields=['name_en'])
+
+        with translation.override('en'):
+            self.assertEqual(self.category.get_name(), 'English Category')
+
+    def test_category_get_name_falls_back_to_chinese(self):
+        """测试英文分类名缺失时回退到原分类名"""
+        with translation.override('en'):
+            self.assertEqual(self.category.get_name(), 'Test Category')
 
     def test_category_has_articles(self):
         """测试分类包含文章"""

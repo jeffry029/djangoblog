@@ -4,19 +4,19 @@
     <div class="mx-auto max-w-container-max px-4 py-8 md:px-8">
         <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-                <a href="/" class="font-headline text-sm font-bold tracking-tight text-primary-600 transition-colors hover:text-primary-500">
+                <a href="{% url 'blog:index' %}" class="font-headline text-sm font-bold tracking-tight text-primary-600 transition-colors hover:text-primary-500">
                     {{ SITE_NAME }}
                 </a>
                 <p class="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">
-                    {{ SITE_DESCRIPTION|default:"专注于技术分享" }}
+                    {% if SITE_DESCRIPTION %}{{ SITE_DESCRIPTION }}{% else %}{% trans 'Focused on technical sharing' %}{% endif %}
                 </p>
             </div>
 
             <nav class="flex flex-wrap items-center gap-x-5 gap-y-2" aria-label="{% trans 'Footer' %}">
-                <a href="{% url 'blog:index' %}" class="editorial-footer-link">技术摘要</a>
-                <a href="{% url 'blog:news' %}" class="editorial-footer-link">AI 快讯</a>
+                <a href="{% url 'blog:index' %}" class="editorial-footer-link">{% trans 'Tech Briefs' %}</a>
+                <a href="{% url 'blog:news' %}" class="editorial-footer-link">{% trans 'AI News' %}</a>
                 <a href="https://github.com/jeffryqueenie-coder/djangoblog" class="editorial-footer-link" target="_blank" rel="noopener">GitHub</a>
-                <button x-data @click="$dispatch('open-feedback')" type="button" class="editorial-footer-link">建议反馈</button>
+                <button x-data @click="$dispatch('open-feedback')" type="button" class="editorial-footer-link">{% trans 'Feedback' %}</button>
             </nav>
         </div>
 

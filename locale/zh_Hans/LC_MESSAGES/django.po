@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-13 16:02+0800\n"
+"POT-Creation-Date: 2026-06-12 08:48+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,338 +17,522 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: .\accounts\admin.py:12
+#: accounts/admin.py:12
 msgid "password"
 msgstr "密码"
 
-#: .\accounts\admin.py:13
+#: accounts/admin.py:13
 msgid "Enter password again"
 msgstr "再次输入密码"
 
-#: .\accounts\admin.py:24 .\accounts\forms.py:89
+#: accounts/admin.py:24 accounts/forms.py:89
 msgid "passwords do not match"
 msgstr "密码不匹配"
 
-#: .\accounts\forms.py:36
+#: accounts/forms.py:36
 msgid "email already exists"
 msgstr "邮箱已存在"
 
-#: .\accounts\forms.py:46 .\accounts\forms.py:50
+#: accounts/forms.py:46 accounts/forms.py:50
 msgid "New password"
 msgstr "新密码"
 
-#: .\accounts\forms.py:60
+#: accounts/forms.py:60
 msgid "Confirm password"
 msgstr "确认密码"
 
-#: .\accounts\forms.py:70 .\accounts\forms.py:116
+#: accounts/forms.py:70 accounts/forms.py:116
 msgid "Email"
 msgstr "邮箱"
 
-#: .\accounts\forms.py:76 .\accounts\forms.py:80
+#: accounts/forms.py:76 accounts/forms.py:80
 msgid "Code"
 msgstr "验证码"
 
-#: .\accounts\forms.py:100 .\accounts\tests.py:194
+#: accounts/forms.py:100
 msgid "email does not exist"
 msgstr "邮箱不存在"
 
-#: .\accounts\models.py:12 .\oauth\models.py:17
+#: accounts/models.py:12 oauth/models.py:17
 msgid "nick name"
 msgstr "昵称"
 
-#: .\accounts\models.py:13 .\blog\models.py:29 .\blog\models.py:266
-#: .\blog\models.py:284 .\comments\models.py:13 .\oauth\models.py:23
-#: .\oauth\models.py:53
+#: accounts/models.py:13 blog/models.py:38 blog/models.py:359
+#: blog/models.py:462 comments/models.py:13 djangoblog/mixins.py:33
+#: oauth/models.py:23 oauth/models.py:53
 msgid "creation time"
 msgstr "创建时间"
 
-#: .\accounts\models.py:14 .\comments\models.py:14 .\oauth\models.py:24
-#: .\oauth\models.py:54
+#: accounts/models.py:14 comments/models.py:14 djangoblog/mixins.py:39
+#: oauth/models.py:24 oauth/models.py:54
 msgid "last modify time"
 msgstr "最后修改时间"
 
-#: .\accounts\models.py:15
+#: accounts/models.py:15
 msgid "create source"
 msgstr "来源"
 
-#: .\accounts\models.py:33 .\djangoblog\logentryadmin.py:81
+#: accounts/models.py:33 comments/models.py:117 djangoblog/logentryadmin.py:81
 msgid "user"
 msgstr "用户"
 
-#: .\accounts\tests.py:216 .\accounts\utils.py:39
-msgid "Verification code error"
-msgstr "验证码错误"
-
-#: .\accounts\utils.py:13
+#: accounts/utils.py:13
 msgid "Verify Email"
 msgstr "验证邮箱"
 
-#: .\accounts\utils.py:21
+#: accounts/utils.py:21
 #, python-format
 msgid ""
 "You are resetting the password, the verification code is：%(code)s, valid "
 "within 5 minutes, please keep it properly"
 msgstr "您正在重置密码，验证码为：%(code)s，5分钟内有效 请妥善保管."
 
-#: .\blog\admin.py:13 .\blog\models.py:92 .\comments\models.py:17
-#: .\oauth\models.py:12
-msgid "author"
-msgstr "作者"
+#: accounts/utils.py:39
+msgid "Verification code error"
+msgstr "验证码错误"
 
-#: .\blog\admin.py:53
+#: blog/admin.py:36
 msgid "Publish selected articles"
 msgstr "发布选中的文章"
 
-#: .\blog\admin.py:54
+#: blog/admin.py:37
 msgid "Draft selected articles"
 msgstr "选中文章设为草稿"
 
-#: .\blog\admin.py:55
+#: blog/admin.py:38
 msgid "Close article comments"
 msgstr "关闭文章评论"
 
-#: .\blog\admin.py:56
+#: blog/admin.py:39
 msgid "Open article comments"
 msgstr "打开文章评论"
 
-#: .\blog\admin.py:89 .\blog\models.py:101 .\blog\models.py:183
-#: .\templates\blog\tags\sidebar.html:40
+#: blog/admin.py:98 blog/models.py:113 blog/models.py:260
 msgid "category"
 msgstr "分类目录"
 
-#: .\blog\models.py:20 .\blog\models.py:179 .\templates\share_layout\nav.html:8
+#: blog/admin.py:104
+msgid "English version"
+msgstr "英文版本"
+
+#: blog/admin.py:155
+msgid "Site identity"
+msgstr "Site identity"
+
+#: blog/admin.py:166
+msgid "Content display"
+msgstr "Content display"
+
+#: blog/admin.py:178
+msgid "Integrations"
+msgstr "Integrations"
+
+#: blog/admin.py:188
+msgid "Custom HTML"
+msgstr "Custom HTML"
+
+#: blog/models.py:29 blog/models.py:256
 msgid "index"
 msgstr "首页"
 
-#: .\blog\models.py:21
+#: blog/models.py:30
 msgid "list"
 msgstr "列表"
 
-#: .\blog\models.py:22
+#: blog/models.py:31
 msgid "post"
 msgstr "文章"
 
-#: .\blog\models.py:23
+#: blog/models.py:32
 msgid "all"
 msgstr "所有"
 
-#: .\blog\models.py:24
+#: blog/models.py:33
 msgid "slide"
 msgstr "侧边栏"
 
-#: .\blog\models.py:30 .\blog\models.py:267 .\blog\models.py:285
+#: blog/models.py:39 blog/models.py:360 blog/models.py:463
 msgid "modify time"
 msgstr "修改时间"
 
-#: .\blog\models.py:63
+#: blog/models.py:72
 msgid "Draft"
 msgstr "草稿"
 
-#: .\blog\models.py:64
+#: blog/models.py:73
 msgid "Published"
 msgstr "发布"
 
-#: .\blog\models.py:67
+#: blog/models.py:76
 msgid "Open"
 msgstr "打开"
 
-#: .\blog\models.py:68
+#: blog/models.py:77 templates/share_layout/base.html:263
+#: templates/share_layout/base.html:305 templates/share_layout/base.html:320
 msgid "Close"
 msgstr "关闭"
 
-#: .\blog\models.py:71 .\comments\admin.py:47
+#: blog/models.py:80 comments/admin.py:51
 msgid "Article"
 msgstr "文章"
 
-#: .\blog\models.py:72
+#: blog/models.py:81
 msgid "Page"
 msgstr "页面"
 
-#: .\blog\models.py:74 .\blog\models.py:280
+#: blog/models.py:83 blog/models.py:458
 msgid "title"
 msgstr "标题"
 
-#: .\blog\models.py:75
+#: blog/models.py:84
 msgid "body"
 msgstr "内容"
 
-#: .\blog\models.py:77
+#: blog/models.py:85
+msgid "English title"
+msgstr "英文标题"
+
+#: blog/models.py:86
+msgid "English body"
+msgstr "英文正文"
+
+#: blog/models.py:87
+msgid "English SEO description"
+msgstr "英文 SEO 描述"
+
+#: blog/models.py:89
 msgid "publish time"
 msgstr "发布时间"
 
-#: .\blog\models.py:79
+#: blog/models.py:91
 msgid "status"
 msgstr "状态"
 
-#: .\blog\models.py:84
+#: blog/models.py:96
 msgid "comment status"
 msgstr "评论状态"
 
-#: .\blog\models.py:88 .\oauth\models.py:43
+#: blog/models.py:100 oauth/models.py:43
 msgid "type"
 msgstr "类型"
 
-#: .\blog\models.py:89
+#: blog/models.py:101 templates/blog/article_index.html:37
+#: templates/blog/news_list.html:20 templates/blog/tags/sidebar.html:32
+#: templates/plugins/article_recommendation/sidebar_widget.html:17
 msgid "views"
 msgstr "阅读量"
 
-#: .\blog\models.py:97 .\blog\models.py:258 .\blog\models.py:282
+#: blog/models.py:104 comments/models.py:17 oauth/models.py:12
+msgid "author"
+msgstr "作者"
+
+#: blog/models.py:109 blog/models.py:351 blog/models.py:460
 msgid "order"
 msgstr "排序"
 
-#: .\blog\models.py:98
+#: blog/models.py:110
 msgid "show toc"
 msgstr "显示目录"
 
-#: .\blog\models.py:105 .\blog\models.py:249
+#: blog/models.py:117 blog/models.py:342
 msgid "tag"
 msgstr "标签"
 
-#: .\blog\models.py:115 .\comments\models.py:21
+#: blog/models.py:127 comments/models.py:21
 msgid "article"
 msgstr "文章"
 
-#: .\blog\models.py:171
+#: blog/models.py:247
 msgid "category name"
 msgstr "分类名"
 
-#: .\blog\models.py:174
+#: blog/models.py:248
+msgid "English category name"
+msgstr "英文分类名"
+
+#: blog/models.py:251
 msgid "parent category"
 msgstr "上级分类"
 
-#: .\blog\models.py:234
+#: blog/models.py:327
 msgid "tag name"
 msgstr "标签名"
 
-#: .\blog\models.py:256
+#: blog/models.py:349
 msgid "link name"
 msgstr "链接名"
 
-#: .\blog\models.py:257 .\blog\models.py:271
+#: blog/models.py:350 blog/models.py:364
 msgid "link"
 msgstr "链接"
 
-#: .\blog\models.py:260
+#: blog/models.py:353
 msgid "is show"
 msgstr "是否显示"
 
-#: .\blog\models.py:262
+#: blog/models.py:355
 msgid "show type"
 msgstr "显示类型"
 
-#: .\blog\models.py:281
+#: blog/models.py:441
+msgid "bookmark count"
+msgstr "书签"
+
+#: blog/models.py:444
+msgid "bookmark stat"
+msgstr "收藏本站"
+
+#: blog/models.py:459
 msgid "content"
 msgstr "内容"
 
-#: .\blog\models.py:283 .\oauth\models.py:52
+#: blog/models.py:461 oauth/models.py:52
 msgid "is enable"
 msgstr "是否启用"
 
-#: .\blog\models.py:289
+#: blog/models.py:467
 msgid "sidebar"
 msgstr "侧边栏"
 
-#: .\blog\models.py:299
+#: blog/models.py:478
+msgid "紫色主题 - Purple Dream"
+msgstr ""
+
+#: blog/models.py:479
+msgid "蓝色主题 - Ocean Blue"
+msgstr ""
+
+#: blog/models.py:480
+msgid "绿色主题 - Forest Green"
+msgstr ""
+
+#: blog/models.py:481
+msgid "橙色主题 - Sunset Orange"
+msgstr ""
+
+#: blog/models.py:482
+msgid "粉色主题 - Cherry Blossom"
+msgstr ""
+
+#: blog/models.py:483
+msgid "红色主题 - Ruby Red"
+msgstr ""
+
+#: blog/models.py:484
+msgid "靛蓝主题 - Midnight Indigo"
+msgstr ""
+
+#: blog/models.py:485
+msgid "青色主题 - Teal Wave"
+msgstr ""
+
+#: blog/models.py:489
 msgid "site name"
 msgstr "站点名称"
 
-#: .\blog\models.py:305
+#: blog/models.py:495
+msgid "English site name"
+msgstr "英文站点名称"
+
+#: blog/models.py:500
 msgid "site description"
 msgstr "站点描述"
 
-#: .\blog\models.py:311
+#: blog/models.py:506
+msgid "English site description"
+msgstr "英文站点描述"
+
+#: blog/models.py:511
 msgid "site seo description"
 msgstr "站点SEO描述"
 
-#: .\blog\models.py:313
+#: blog/models.py:513
+msgid "English site SEO description"
+msgstr "英文站点 SEO 描述"
+
+#: blog/models.py:515
 msgid "site keywords"
 msgstr "关键字"
 
-#: .\blog\models.py:318
+#: blog/models.py:520
 msgid "article sub length"
 msgstr "文章摘要长度"
 
-#: .\blog\models.py:319
+#: blog/models.py:521
 msgid "sidebar article count"
 msgstr "侧边栏文章数目"
 
-#: .\blog\models.py:320
+#: blog/models.py:522
 msgid "sidebar comment count"
 msgstr "侧边栏评论数目"
 
-#: .\blog\models.py:321
+#: blog/models.py:523
 msgid "article comment count"
 msgstr "文章页面默认显示评论数目"
 
-#: .\blog\models.py:322
+#: blog/models.py:524
 msgid "show adsense"
 msgstr "是否显示广告"
 
-#: .\blog\models.py:324
+#: blog/models.py:526
 msgid "adsense code"
 msgstr "广告内容"
 
-#: .\blog\models.py:325
+#: blog/models.py:528
 msgid "open site comment"
 msgstr "公共头部"
 
-#: .\blog\models.py:352
+#: blog/models.py:530
+msgid "配色方案"
+msgstr ""
+
+#: blog/models.py:534
+msgid "选择网站的主题配色方案"
+msgstr ""
+
+#: blog/models.py:561
 msgid "Website configuration"
 msgstr "网站配置"
 
-#: .\blog\models.py:360
+#: blog/models.py:599
 msgid "There can only be one configuration"
 msgstr "只能有一个配置"
 
-#: .\blog\views.py:348
+#: blog/templatetags/blog_tags.py:186 blog/templatetags/blog_tags.py:191
+msgid "Open tech blogs"
+msgstr "开放技术博客"
+
+#: blog/views.py:87
+msgid "Developer Radar"
+msgstr "开发者雷达"
+
+#: blog/views.py:88 templates/blog/article_index.html:29
 msgid ""
-"Sorry, the page you requested is not found, please click the home page to "
-"see other?"
-msgstr "抱歉，你所访问的页面找不到，请点击首页看看别的？"
+"AI-curated technical articles, programming practices, and artificial "
+"intelligence news."
+msgstr "AI 精选与摘要技术文章、编程实践和人工智能新闻。"
 
-#: .\blog\views.py:356
-msgid "Sorry, the server is busy, please click the home page to see other?"
-msgstr "抱歉，服务出错了，请点击首页看看别的？"
+#: blog/views.py:106 templates/blog/news_list.html:10
+#: templates/share_layout/footer.html:17 templates/share_layout/nav.html:81
+#: templates/share_layout/nav.html:187
+msgid "AI News"
+msgstr "AI 新闻"
 
-#: .\blog\views.py:369
-msgid "Sorry, you do not have permission to access this page?"
-msgstr "抱歉，你没用权限访问此页面。"
+#: blog/views.py:107
+msgid "AI and technology news briefs."
+msgstr "AI and technology news briefs."
 
-#: .\comments\admin.py:15
+#: blog/views.py:108
+msgid "technology news"
+msgstr "technology news"
+
+#: blog/views.py:108
+msgid "AI news"
+msgstr "AI news"
+
+#: blog/views.py:331
+#, fuzzy, python-format
+#| msgid "Browse all articles in %(category)s, %(count)s articles total."
+msgid "Browse all articles in %(category)s, %(count)s article total."
+msgid_plural "Browse all articles in %(category)s, %(count)s articles total."
+msgstr[0] "浏览 %(category)s 分类下的所有文章，共 %(count)s 篇文章。"
+msgstr[1] "浏览 %(category)s 分类下的所有文章，共 %(count)s 篇文章。"
+
+#: blog/views.py:370
+msgid "articles"
+msgstr "文章"
+
+#: blog/views.py:372
+#, fuzzy, python-format
+#| msgid "Browse all articles in %(category)s, %(count)s articles total."
+msgid "Browse all articles by %(author)s, %(count)s article total."
+msgid_plural "Browse all articles by %(author)s, %(count)s articles total."
+msgstr[0] "浏览 %(author)s 发表的所有文章，共 %(count)s 篇。"
+msgstr[1] "浏览 %(author)s 发表的所有文章，共 %(count)s 篇。"
+
+#: blog/views.py:417
+#, fuzzy, python-format
+#| msgid "Browse all articles in %(category)s, %(count)s articles total."
+msgid "Browse all articles about %(tag)s, %(count)s article total."
+msgid_plural "Browse all articles about %(tag)s, %(count)s articles total."
+msgstr[0] "浏览所有关于 %(tag)s 的文章，共 %(count)s 篇内容。"
+msgstr[1] "浏览所有关于 %(tag)s 的文章，共 %(count)s 篇内容。"
+
+#: blog/views.py:559
+msgid "Feedback content must be at least 10 characters."
+msgstr "反馈内容至少需要10个字符"
+
+#: blog/views.py:561
+msgid "Feedback content must be no more than 2000 characters."
+msgstr "反馈内容不能超过2000个字符"
+
+#: blog/views.py:563
+msgid "Contact must be no more than 200 characters."
+msgstr "联系方式不能超过200个字符"
+
+#: blog/views.py:565
+msgid "Invalid request identifier."
+msgstr "无效的请求标识"
+
+#: blog/views.py:579
+msgid "Too many submissions. Please try again later."
+msgstr "提交过于频繁，请稍后再试"
+
+#: comments/admin.py:17
 msgid "Disable comments"
 msgstr "禁用评论"
 
-#: .\comments\admin.py:16
+#: comments/admin.py:18
 msgid "Enable comments"
 msgstr "启用评论"
 
-#: .\comments\admin.py:46
+#: comments/admin.py:50 comments/admin.py:76
 msgid "User"
 msgstr "用户"
 
-#: .\comments\models.py:25
+#: comments/admin.py:75
+msgid "Comment"
+msgstr "评论"
+
+#: comments/models.py:25
 msgid "parent comment"
 msgstr "上级评论"
 
-#: .\comments\models.py:29
+#: comments/models.py:29
 msgid "enable"
 msgstr "启用"
 
-#: .\comments\models.py:34 .\templates\blog\tags\article_info.html:30
+#: comments/models.py:34 comments/models.py:111
+#: templates/blog/tags/article_info_highlight.html:44
 msgid "comment"
 msgstr "评论"
 
-#: .\comments\utils.py:13
+#: comments/models.py:121
+msgid "reaction type"
+msgstr "创建时间"
+
+#: comments/models.py:125
+msgid "created at"
+msgstr "来源"
+
+#: comments/models.py:128
+msgid "comment reaction"
+msgstr "评论状态"
+
+#: comments/models.py:129
+msgid "comment reactions"
+msgstr "评论状态"
+
+#: comments/utils.py:13
 msgid "Thanks for your comment"
 msgstr "感谢你的评论"
 
-#: .\comments\utils.py:15
+#: comments/utils.py:15
 #, python-format
 msgid ""
 "<p>Thank you very much for your comments on this site</p>\n"
-"                    You can visit <a href=\"%(article_url)s\" rel=\"bookmark"
-"\">%(article_title)s</a>\n"
+"                    You can visit <a href=\"%(article_url)s\" "
+"rel=\"bookmark\">%(article_title)s</a>\n"
 "                    to review your comments,\n"
 "                    Thank you again!\n"
 "                    <br />\n"
@@ -364,11 +548,11 @@ msgstr ""
 " 如果上面的链接打不开，请复制此链接链接到您的浏览器。\n"
 "%(article_url)s"
 
-#: .\comments\utils.py:26
+#: comments/utils.py:26
 #, python-format
 msgid ""
-"Your comment on <a href=\"%(article_url)s\" rel=\"bookmark\">"
-"%(article_title)s</a><br/> has \n"
+"Your comment on <a href=\"%(article_url)s\" "
+"rel=\"bookmark\">%(article_title)s</a><br/> has \n"
 "                   received a reply. <br/> %(comment_body)s\n"
 "                    <br/>   \n"
 "                    go check it out!\n"
@@ -388,43 +572,69 @@ msgstr ""
 " %(article_url)s\n"
 " "
 
-#: .\djangoblog\logentryadmin.py:63
+#: djangoblog/error_views.py:73
+msgid ""
+"Sorry, the page you requested is not found, please click the home page to "
+"see other?"
+msgstr "抱歉，你所访问的页面找不到，请点击首页看看别的？"
+
+#: djangoblog/error_views.py:94
+msgid "Sorry, the server is busy, please click the home page to see other?"
+msgstr "抱歉，服务出错了，请点击首页看看别的？"
+
+#: djangoblog/error_views.py:115
+msgid "Sorry, you do not have permission to access this page?"
+msgstr "抱歉，你没用权限访问此页面。"
+
+#: djangoblog/error_views.py:137
+msgid "Sorry, the request was invalid?"
+msgstr ""
+
+#: djangoblog/logentryadmin.py:63
 msgid "object"
 msgstr "对象"
 
-#: .\djangoblog\settings.py:140
+#: djangoblog/mixins.py:36
+msgid "The date and time when this object was created"
+msgstr ""
+
+#: djangoblog/mixins.py:41
+msgid "The date and time when this object was last modified"
+msgstr ""
+
+#: djangoblog/settings.py:156
 msgid "English"
 msgstr "英文"
 
-#: .\djangoblog\settings.py:141
+#: djangoblog/settings.py:157
 msgid "Simplified Chinese"
 msgstr "简体中文"
 
-#: .\djangoblog\settings.py:142
+#: djangoblog/settings.py:158
 msgid "Traditional Chinese"
 msgstr "繁体中文"
 
-#: .\oauth\models.py:30
+#: oauth/models.py:30
 msgid "oauth user"
 msgstr "第三方用户"
 
-#: .\oauth\models.py:37
+#: oauth/models.py:37
 msgid "weibo"
 msgstr "微博"
 
-#: .\oauth\models.py:38
+#: oauth/models.py:38
 msgid "google"
 msgstr "谷歌"
 
-#: .\oauth\models.py:48
+#: oauth/models.py:48
 msgid "callback url"
 msgstr "回调地址"
 
-#: .\oauth\models.py:59
+#: oauth/models.py:59
 msgid "already exists"
 msgstr "已经存在"
 
-#: .\oauth\views.py:154
+#: oauth/views.py:172
 #, python-format
 msgid ""
 "\n"
@@ -452,11 +662,11 @@ msgstr ""
 "        %(site)s\n"
 "    "
 
-#: .\oauth\views.py:165
+#: oauth/views.py:183
 msgid "Congratulations on your successful binding!"
 msgstr "恭喜你绑定成功"
 
-#: .\oauth\views.py:217
+#: oauth/views.py:244
 #, python-format
 msgid ""
 "\n"
@@ -483,21 +693,21 @@ msgstr ""
 "%(url)s\n"
 " "
 
-#: .\oauth\views.py:228 .\oauth\views.py:240
+#: oauth/views.py:255 oauth/views.py:267
 msgid "Bind your email"
 msgstr "绑定邮箱"
 
-#: .\oauth\views.py:242
+#: oauth/views.py:269
 msgid ""
 "Congratulations, the binding is just one step away. Please log in to your "
 "email to check the email to complete the binding. Thank you."
 msgstr "恭喜您，还差一步就绑定成功了，请登录您的邮箱查看邮件完成绑定，谢谢。"
 
-#: .\oauth\views.py:245
+#: oauth/views.py:272
 msgid "Binding successful"
 msgstr "绑定成功"
 
-#: .\oauth\views.py:247
+#: oauth/views.py:274
 #, python-format
 msgid ""
 "Congratulations, you have successfully bound your email address. You can use "
@@ -507,165 +717,552 @@ msgstr ""
 "恭喜您绑定成功，您以后可以使用%(oauthuser_type)s来直接免密码登录本站啦，感谢"
 "您对本站对关注。"
 
-#: .\templates\account\forget_password.html:7
-msgid "forget the password"
-msgstr "忘记密码"
-
-#: .\templates\account\forget_password.html:18
-msgid "get verification code"
-msgstr "获取验证码"
-
-#: .\templates\account\forget_password.html:19
-msgid "submit"
-msgstr "提交"
-
-#: .\templates\account\login.html:36
-msgid "Create Account"
-msgstr "创建账号"
-
-#: .\templates\account\login.html:42
-#| msgid "forget the password"
+#: templates/account/forget_password.html:5 templates/account/login.html:119
 msgid "Forget Password"
 msgstr "忘记密码"
 
-#: .\templates\account\result.html:18 .\templates\blog\tags\sidebar.html:126
+#: templates/account/forget_password.html:20
+#: templates/account/forget_password.html:95
+msgid "Reset Password"
+msgstr "忘记密码"
+
+#: templates/account/forget_password.html:23
+msgid "Enter your email to reset password"
+msgstr ""
+
+#: templates/account/forget_password.html:82
+msgid "Get Verification Code"
+msgstr "获取验证码"
+
+#: templates/account/forget_password.html:87
+msgid "Verification Code Sent"
+msgstr "验证码错误"
+
+#: templates/account/forget_password.html:104 templates/account/login.html:158
+#: templates/blog/error_page.html:49
+msgid "Home Page"
+msgstr "页面"
+
+#: templates/account/forget_password.html:113
+#: templates/account/registration_form.html:120
+msgid "Sign In"
+msgstr ""
+
+#: templates/account/login.html:5 templates/account/login.html:129
+msgid "Sign in"
+msgstr ""
+
+#: templates/account/login.html:19
+msgid "Welcome Back"
+msgstr ""
+
+#: templates/account/login.html:22
+msgid "Sign in to your account"
+msgstr ""
+
+#: templates/account/login.html:109
+msgid "Stay signed in"
+msgstr ""
+
+#: templates/account/login.html:141
+msgid "Or continue with"
+msgstr ""
+
+#: templates/account/registration_form.html:5
+#: templates/account/registration_form.html:19
+#: templates/account/registration_form.html:106
+msgid "Create Account"
+msgstr "创建账号"
+
+#: templates/account/registration_form.html:22
+msgid "Join us today"
+msgstr ""
+
+#: templates/account/registration_form.html:113
+msgid "Already have an account?"
+msgstr ""
+
+#: templates/account/result.html:24
 msgid "login"
 msgstr "登录"
 
-#: .\templates\account\result.html:22
+#: templates/account/result.html:32
 msgid "back to the homepage"
 msgstr "返回首页吧"
 
-#: .\templates\blog\article_archives.html:7
-#: .\templates\blog\article_archives.html:24
+#: templates/blog/article_archives.html:7
+#: templates/blog/article_archives.html:10
+#: templates/blog/article_archives.html:13
+#: templates/blog/article_archives.html:25
 msgid "article archive"
 msgstr "文章归档"
 
-#: .\templates\blog\article_archives.html:32
-msgid "year"
-msgstr "年"
+#: templates/blog/article_archives.html:9
+#: templates/blog/article_archives.html:14
+msgid "Browse the full article archive organized by year and month."
+msgstr "浏览所有文章的时间归档，按年份和月份整理。"
 
-#: .\templates\blog\article_archives.html:36
-msgid "month"
-msgstr "月"
+#: templates/blog/article_archives.html:27
+#, fuzzy, python-format
+#| msgid "recent articles"
+msgid "%(count)s article"
+msgid_plural "%(count)s articles"
+msgstr[0] "%(count)s 篇文章"
+msgstr[1] "%(count)s 篇文章"
 
-#: .\templates\blog\tags\article_info.html:12
-msgid "pin to top"
-msgstr "置顶"
+#: templates/blog/article_archives.html:48
+#, python-format
+msgid "%(month)s month"
+msgstr "%(month)s 月"
 
-#: .\templates\blog\tags\article_info.html:28
-msgid "comments"
-msgstr "评论"
+#: templates/blog/article_detail.html:64
+msgid "Estimated reading time"
+msgstr "预计阅读时间"
 
-#: .\templates\blog\tags\article_info.html:58
+#: templates/blog/article_detail.html:64
+msgid "min"
+msgstr "分钟"
+
+#: templates/blog/article_detail.html:70
+#: templates/blog/tags/article_info.html:22
+msgid "Source"
+msgstr "来源"
+
+#: templates/blog/article_detail.html:71
+msgid "AI summary"
+msgstr "AI 摘要"
+
+#: templates/blog/article_detail.html:74
+msgid "Original link"
+msgstr "Original link"
+
+#: templates/blog/article_detail.html:79
+msgid ""
+"Disclaimer: This article is an AI-assisted summary. Read it together with "
+"the original source when precision matters. The summary may omit context, "
+"version differences, or edge cases and is not official documentation."
+msgstr ""
+"Disclaimer: This article is an AI-assisted summary. Read it together with "
+"the original source when precision matters. The summary may omit context, "
+"version differences, or edge cases and is not official documentation."
+
+#: templates/blog/article_detail.html:88
+#: templates/blog/tags/article_info_highlight.html:83
 msgid "toc"
 msgstr "目录"
 
-#: .\templates\blog\tags\article_meta_info.html:6
+#: templates/blog/article_detail.html:114
+msgid "Previous article"
+msgstr "上一篇文章"
+
+#: templates/blog/article_detail.html:120
+msgid "Next article"
+msgstr "下一篇文章"
+
+#: templates/blog/article_index.html:17
+msgid "Category"
+msgstr "分类"
+
+#: templates/blog/article_index.html:20
+msgid "Tag"
+msgstr "标签"
+
+#: templates/blog/article_index.html:23
+msgid "Author"
+msgstr "作者"
+
+#: templates/blog/article_index.html:26
+msgid "AI curated engineering notes"
+msgstr "AI 精选工程笔记"
+
+#: templates/blog/article_index.html:27 templates/share_layout/footer.html:16
+#: templates/share_layout/nav.html:30 templates/share_layout/nav.html:160
+msgid "Tech Briefs"
+msgstr "技术摘要"
+
+#: templates/blog/article_index.html:47 templates/blog/news_list.html:30
+msgid "Bookmarked"
+msgstr "已收藏"
+
+#: templates/blog/article_index.html:47 templates/blog/news_list.html:30
+msgid "Bookmark site"
+msgstr "收藏本站"
+
+#: templates/blog/article_index.html:63
+msgid "No articles yet."
+msgstr "暂无文章"
+
+#: templates/blog/error_page.html:53
+msgid "Go back"
+msgstr "Go back"
+
+#: templates/blog/links_list.html:7 templates/blog/links_list.html:13
+msgid "Links"
+msgstr "友情链接"
+
+#: templates/blog/links_list.html:9 templates/blog/links_list.html:14
+msgid "A curated list of friendly links for this site."
+msgstr "本站的友情链接列表，欢迎互换友链。"
+
+#: templates/blog/links_list.html:10 templates/blog/links_list.html:25
+msgid "links"
+msgstr "链接"
+
+#: templates/blog/links_list.html:27
+#, fuzzy, python-format
+#| msgid "recent articles"
+msgid "%(count)s link"
+msgid_plural "%(count)s links"
+msgstr[0] "%(count)s 个链接"
+msgstr[1] "%(count)s 个链接"
+
+#: templates/blog/news_list.html:12
+msgid ""
+"Aggregated AI and developer ecosystem updates from the last 24 hours, with "
+"source links for deeper reading."
+msgstr "聚合过去 24 小时 AI 与开发者生态动态，并提供来源链接以便深入阅读。"
+
+#: templates/blog/news_list.html:74
+msgid "No news yet."
+msgstr "暂无新闻"
+
+#: templates/blog/news_list.html:82 templates/blog/news_list.html:84
+msgid "Previous"
+msgstr "上一页"
+
+#: templates/blog/news_list.html:88 templates/blog/news_list.html:90
+msgid "Next"
+msgstr "下一页"
+
+#: templates/blog/tags/article_info.html:10
+msgid "Pinned"
+msgstr "置顶"
+
+#: templates/blog/tags/article_info.html:46
+msgid "Read full article"
+msgstr "阅读全文"
+
+#: templates/blog/tags/article_info_highlight.html:12
+msgid "pin to top"
+msgstr "置顶"
+
+#: templates/blog/tags/article_info_highlight.html:42
+msgid "comments"
+msgstr "评论"
+
+#: templates/blog/tags/article_meta_info.html:5
 msgid "posted in"
 msgstr "发布于"
 
-#: .\templates\blog\tags\article_meta_info.html:14
+#: templates/blog/tags/article_meta_info.html:6
 msgid "and tagged"
 msgstr "并标记为"
 
-#: .\templates\blog\tags\article_meta_info.html:25
+#: templates/blog/tags/article_meta_info.html:7
 msgid "by "
 msgstr "由"
 
-#: .\templates\blog\tags\article_meta_info.html:29
-#, python-format
-msgid ""
-"\n"
-"               title=\"View all articles published by "
-"%(article.author.username)s\"\n"
-"                    "
+#: templates/blog/tags/article_meta_info.html:11
+#, fuzzy, python-format
+#| msgid ""
+#| "\n"
+#| "               title=\"View all articles published by "
+#| "%(article.author.username)s\"\n"
+#| "                    "
+msgid "title=\"View all articles published by %(article.author.username)s\""
 msgstr ""
 "\n"
 "               title=\"查看所有由 %(article.author.username)s\"发布的文章\n"
 "                    "
 
-#: .\templates\blog\tags\article_meta_info.html:44
+#: templates/blog/tags/article_meta_info.html:17
 msgid "on"
 msgstr "在"
 
-#: .\templates\blog\tags\article_meta_info.html:54
+#: templates/blog/tags/article_meta_info.html:27
 msgid "edit"
 msgstr "编辑"
 
-#: .\templates\blog\tags\article_pagination.html:4
-msgid "article navigation"
-msgstr "文章导航"
+#: templates/blog/tags/article_pagination.html:3
+msgid "Pagination"
+msgstr "分页导航"
 
-#: .\templates\blog\tags\article_pagination.html:9
-msgid "earlier articles"
-msgstr "早期文章"
+#: templates/blog/tags/article_pagination.html:5
+msgid "Previous page"
+msgstr "上一页"
 
-#: .\templates\blog\tags\article_pagination.html:12
-msgid "newer articles"
-msgstr "较新文章"
+#: templates/blog/tags/article_pagination.html:29
+msgid "Next page"
+msgstr "下一页"
 
-#: .\templates\blog\tags\article_tag_list.html:5
+#: templates/blog/tags/article_tag_list.html:5
 msgid "tags"
 msgstr "标签"
 
-#: .\templates\blog\tags\sidebar.html:7
-msgid "search"
-msgstr "搜索"
+#: templates/blog/tags/sidebar.html:22
+msgid "Popular articles"
+msgstr "热门文章"
 
-#: .\templates\blog\tags\sidebar.html:50
+#: templates/blog/tags/sidebar.html:46
 msgid "recent comments"
 msgstr "近期评论"
 
-#: .\templates\blog\tags\sidebar.html:57
-msgid "published on"
-msgstr "发表于"
+#: templates/blog/tags/sidebar.html:55
+#, python-format
+msgid "%(time)s ago"
+msgstr "%(time)s前"
 
-#: .\templates\blog\tags\sidebar.html:65
-msgid "recent articles"
-msgstr "近期文章"
-
-#: .\templates\blog\tags\sidebar.html:77
-msgid "bookmark"
-msgstr "书签"
-
-#: .\templates\blog\tags\sidebar.html:96
+#: templates/blog/tags/sidebar.html:70
 msgid "Tag Cloud"
 msgstr "标签云"
 
-#: .\templates\blog\tags\sidebar.html:107
-msgid "Welcome to star or fork the source code of this site"
-msgstr "欢迎您STAR或者FORK本站源代码"
+#: templates/blog/tags/sidebar.html:88
+msgid "recent articles"
+msgstr "最近文章"
 
-#: .\templates\blog\tags\sidebar.html:118
-msgid "Function"
-msgstr "功能"
+#: templates/comments/tags/comment_item.html:6
+#: templates/comments/tags/comment_item_tree.html:7
+#, python-format
+msgid "%(username)s avatar"
+msgstr "%(username)s的头像"
 
-#: .\templates\blog\tags\sidebar.html:120
-msgid "management site"
-msgstr "管理站点"
+#: templates/comments/tags/comment_item.html:28
+msgid "Replying to"
+msgstr "回复给"
 
-#: .\templates\blog\tags\sidebar.html:122
-msgid "logout"
-msgstr "登出"
+#: templates/comments/tags/comment_item.html:34
+#: templates/comments/tags/comment_item_tree.html:42
+#, python-format
+msgid "Reply to %(username)s"
+msgstr "回复给%(username)s"
 
-#: .\templates\blog\tags\sidebar.html:129
-msgid "Track record"
-msgstr "运动轨迹记录"
+#: templates/comments/tags/comment_item.html:34
+#: templates/comments/tags/comment_item_modern.html:54
+#: templates/comments/tags/comment_item_tree.html:32
+#: templates/comments/tags/comment_item_tree.html:42
+msgid "回复"
+msgstr ""
 
-#: .\templates\blog\tags\sidebar.html:135
-msgid "Click me to return to the top"
-msgstr "点我返回顶部"
+#: templates/comments/tags/comment_item_modern.html:38
+msgid "博主"
+msgstr ""
 
-#: .\templates\oauth\oauth_applications.html:5
-#| msgid "login"
+#: templates/comments/tags/comment_list.html:10
+#: templates/comments/tags/comment_list_modern.html:12
+msgid "评论"
+msgstr ""
+
+#: templates/comments/tags/comment_list.html:30
+#: templates/comments/tags/comment_list_modern.html:37
+msgid "上一页"
+msgstr ""
+
+#: templates/comments/tags/comment_list.html:35
+#: templates/comments/tags/comment_list_modern.html:47
+msgid "下一页"
+msgstr ""
+
+#: templates/comments/tags/comment_list_modern.html:63
+msgid "暂无评论"
+msgstr ""
+
+#: templates/oauth/oauth_applications.html:6
 msgid "quick login"
 msgstr "快捷登录"
 
-#: .\templates\share_layout\nav.html:26
-msgid "Article archive"
-msgstr "文章归档"
+#: templates/search/search.html:6 templates/search/search.html:15
+msgid "Search"
+msgstr "Search"
 
-#: templates/blog/article_detail.html templates/blog/article_index.html
-msgid "Discover more"
-msgstr "发现更多"
+#: templates/search/search.html:7
+msgid "Search articles and news by title"
+msgstr "按标题搜索文章和新闻"
+
+#: templates/search/search.html:22
+msgid "Articles"
+msgstr "文章"
+
+#: templates/search/search.html:27
+msgid "No matching article titles."
+msgstr "没有匹配的文章标题。"
+
+#: templates/search/search.html:33
+msgid "News"
+msgstr "新闻"
+
+#: templates/search/search.html:54
+msgid "No matching news titles."
+msgstr "没有匹配的新闻标题。"
+
+#: templates/search/search.html:61
+#, python-format
+msgid "No articles or news found with a title containing \"%(query)s\"."
+msgstr "没有找到标题包含“%(query)s”的文章或新闻。"
+
+#: templates/search/search.html:65
+msgid "Enter a keyword to search article and news titles."
+msgstr "输入关键词搜索文章和新闻标题。"
+
+#: templates/share_layout/api_promo.html:5
+msgid "View API relay service"
+msgstr "查看 API 中转服务"
+
+#: templates/share_layout/api_promo.html:9
+msgid "API relay"
+msgstr "API 中转"
+
+#: templates/share_layout/api_promo.html:12
+msgid "Lower-cost access to full models"
+msgstr "满血模型低成本调用"
+
+#: templates/share_layout/api_promo.html:14
+msgid "Full GPT-5.5 0.3R = $1, full Claude Opus 4.8 1R = $1"
+msgstr "满血GPT-5.5 0.3R = 1$，满血Claude opus 4.8 1R = 1$"
+
+#: templates/share_layout/api_promo.html:18
+msgid "View now"
+msgstr "立即查看"
+
+#: templates/share_layout/base.html:213
+msgid "Back to top"
+msgstr "回到顶部"
+
+#: templates/share_layout/base.html:227
+msgid "Image preview"
+msgstr "图片预览"
+
+#: templates/share_layout/base.html:281 templates/share_layout/base.html:311
+#: templates/share_layout/footer.html:19
+msgid "Feedback"
+msgstr "建议反馈"
+
+#: templates/share_layout/base.html:312
+msgid "Tell us about any suggestions or issues."
+msgstr "有任何建议或问题，欢迎告诉我们"
+
+#: templates/share_layout/base.html:319
+msgid "Thanks for your feedback."
+msgstr "感谢您的反馈！"
+
+#: templates/share_layout/base.html:329
+msgid "Feedback content"
+msgstr "反馈内容"
+
+#: templates/share_layout/base.html:331
+msgid "Enter your suggestion or feedback, at least 10 characters."
+msgstr "请输入您的建议或反馈（至少10个字符）"
+
+#: templates/share_layout/base.html:337
+msgid "Contact"
+msgstr "联系方式"
+
+#: templates/share_layout/base.html:337
+msgid "Optional, email recommended"
+msgstr "（选填，推荐邮箱）"
+
+#: templates/share_layout/base.html:338
+msgid "Email or other contact method"
+msgstr "邮箱或其他联系方式"
+
+#: templates/share_layout/base.html:344
+msgid "Submit feedback"
+msgstr "提交反馈"
+
+#: templates/share_layout/base.html:345
+msgid "Submitting..."
+msgstr "提交中..."
+
+#: templates/share_layout/footer.html:11
+msgid "Focused on technical sharing"
+msgstr "专注于技术分享"
+
+#: templates/share_layout/footer.html:15
+msgid "Footer"
+msgstr "页脚"
+
+#: templates/share_layout/nav.html:8
+msgid "Skip to content"
+msgstr "跳到内容"
+
+#: templates/share_layout/nav.html:24
+msgid "Primary"
+msgstr "主导航"
+
+#: templates/share_layout/nav.html:100 templates/share_layout/nav.html:155
+msgid "Search tech briefs/news..."
+msgstr "搜索技术摘要/新闻..."
+
+#: templates/share_layout/nav.html:101 templates/share_layout/nav.html:155
+msgid "Search tech briefs and AI news"
+msgstr "搜索技术摘要和 AI 新闻"
+
+#: templates/share_layout/nav.html:110
+msgid "Toggle theme"
+msgstr "切换主题"
+
+#: templates/share_layout/nav.html:124 templates/share_layout/nav.html:194
+msgid "Language"
+msgstr "语言"
+
+#: templates/share_layout/nav.html:136
+msgid "Menu"
+msgstr "菜单"
+
+#: templates/share_layout/nav.html:148
+msgid "Mobile"
+msgstr "移动端导航"
+
+#: templates/share_layout/nav.html:170
+msgid "Expand subcategories"
+msgstr "展开子分类"
+
+#~ msgid "forget the password"
+#~ msgstr "忘记密码"
+
+#~ msgid "submit"
+#~ msgstr "提交"
+
+#~ msgid "year"
+#~ msgstr "年"
+
+#~ msgid "month"
+#~ msgstr "月"
+
+#~ msgid "article navigation"
+#~ msgstr "文章导航"
+
+#~ msgid "earlier articles"
+#~ msgstr "早期文章"
+
+#~ msgid "newer articles"
+#~ msgstr "较新文章"
+
+#~ msgid "search"
+#~ msgstr "搜索"
+
+#~ msgid "published on"
+#~ msgstr "发表于"
+
+#~ msgid "Welcome to star or fork the source code of this site"
+#~ msgstr "欢迎您STAR或者FORK本站源代码"
+
+#~ msgid "Function"
+#~ msgstr "功能"
+
+#~ msgid "management site"
+#~ msgstr "管理站点"
+
+#~ msgid "logout"
+#~ msgstr "登出"
+
+#~ msgid "Track record"
+#~ msgstr "运动轨迹记录"
+
+#~ msgid "Click me to return to the top"
+#~ msgstr "点我返回顶部"
+
+#~ msgid "Article archive"
+#~ msgstr "文章归档"
+
+#~ msgid "Discover more"
+#~ msgstr "发现更多"

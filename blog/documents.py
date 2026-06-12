@@ -174,6 +174,8 @@ class ElaspedTimeDocumentManager:
 class ArticleDocument(Document):
     body = Text(analyzer='ik_max_word', search_analyzer='ik_smart')
     title = Text(analyzer='ik_max_word', search_analyzer='ik_smart')
+    body_en = Text()
+    title_en = Text()
     author = Object(properties={
         'nickname': Text(analyzer='ik_max_word', search_analyzer='ik_smart'),
         'id': Integer()
@@ -225,6 +227,8 @@ class ArticleDocumentManager():
                     'id': article.id},
                 body=article.body,
                 title=article.title,
+                body_en=article.body_en,
+                title_en=article.title_en,
                 author={
                     'nickname': article.author.username,
                     'id': article.author.id},

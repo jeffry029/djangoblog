@@ -3,17 +3,18 @@ import os
 import re
 import uuid
 
-from blog.context_processors import PUBLIC_SITE_NAME
 from django.conf import settings
 from django.core.paginator import Paginator
-from django.db.models import F, Sum
+from django.db.models import F, Q, Sum
 from django.http import Http404, HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.templatetags.static import static
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from django.utils import translation
 from django.utils.translation import gettext_lazy as _
+from django.utils.translation import ngettext
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.detail import DetailView
 from django.views.generic.list import ListView
@@ -83,8 +84,8 @@ class IndexView(OptimizedArticleQueryMixin, ArticleListView):
         context = super().get_context_data(**kwargs)
         blog_setting = get_blog_setting()
         # 提供基础SEO数据
-        context['seo_title'] = "开发者雷达"
-        context['seo_description'] = "AI 精选与摘要技术文章、编程实践和人工智能新闻。"
+        context['seo_title'] = _("Developer Radar")
+        context['seo_description'] = _("AI-curated technical articles, programming practices, and artificial intelligence news.")
         context['seo_keywords'] = blog_setting.site_keywords
         return context
 
@@ -102,9 +103,9 @@ class NewsListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         blog_setting = get_blog_setting()
-        context['seo_title'] = f"AI 快讯 | {PUBLIC_SITE_NAME}"
-        context['seo_description'] = "AI 与技术新闻快讯。"
-        context['seo_keywords'] = f"技术新闻,AI新闻,{blog_setting.site_keywords}"
+        context['seo_title'] = f"{_('AI News')} | {blog_setting.get_site_name()}"
+        context['seo_description'] = _("AI and technology news briefs.")
+        context['seo_keywords'] = f"{_('technology news')},{_('AI news')},{blog_setting.site_keywords}"
         context['linktype'] = LinkShowType.L
         return context
 
@@ -175,7 +176,7 @@ def title_search_view(request):
 
     if query:
         article_results = Article.objects.filter(
-            title__icontains=query,
+            Q(title__icontains=query) | Q(title_en__icontains=query),
             type='a',
             status='p',
         ).select_related('category', 'author').prefetch_related('tags')[:30]
@@ -255,18 +256,26 @@ class ArticleDetailView(DetailView):
         from djangoblog.utils import CommonMarkdown
         
         # 处理description：markdown -> HTML -> 纯文本，彻底去除格式
-        html_content = CommonMarkdown.get_markdown(article.body)
-        description = strip_tags(html_content)
-        description = ' '.join(description.split())  # 规范化空白字符
-        description = Truncator(description).chars(150, truncate='...')
+        if article.get_seo_description():
+            description = article.get_seo_description()
+        else:
+            html_content = CommonMarkdown.get_markdown(article.get_body())
+            description = strip_tags(html_content)
+            description = ' '.join(description.split())  # 规范化空白字符
+            description = Truncator(description).chars(150, truncate='...')
         
         # 处理keywords：去除空格，用逗号分隔
         tags = [tag.name.strip() for tag in article.tags.all()]
         keywords = ", ".join(tags) if tags else blog_setting.site_keywords
         
-        context['seo_title'] = f"{article.title} | {blog_setting.site_name}"
+        context['seo_title'] = f"{article.get_title()} | {blog_setting.get_site_name()}"
         context['seo_description'] = description
         context['seo_keywords'] = keywords
+        context['canonical_url'] = article.get_full_url_for_language(translation.get_language() or settings.LANGUAGE_CODE)
+        context['alternate_urls'] = {
+            'zh_hans': article.get_full_url_for_language('zh-hans'),
+            'en': article.get_full_url_for_language('en'),
+        }
         
         # 触发文章详情加载钩子，让插件可以添加额外的上下文数据
         from djangoblog.plugin_manage.hook_constants import ARTICLE_DETAIL_LOAD
@@ -304,7 +313,7 @@ class CategoryDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleLis
 
     def get_context_data(self, **kwargs):
         category = self.get_slug_object()
-        categoryname = category.name
+        categoryname = category.get_name()
 
         try:
             categoryname = categoryname.split('/')[-1]
@@ -317,8 +326,15 @@ class CategoryDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleLis
         # 添加基础SEO数据
         blog_setting = get_blog_setting()
         article_count = self.get_queryset().count()
-        kwargs['seo_title'] = f"{categoryname} | {blog_setting.site_name}"
-        kwargs['seo_description'] = f"浏览 {categoryname} 分类下的所有文章，共 {article_count} 篇文章。"
+        kwargs['seo_title'] = f"{categoryname} | {blog_setting.get_site_name()}"
+        kwargs['seo_description'] = ngettext(
+            'Browse all articles in %(category)s, %(count)s article total.',
+            'Browse all articles in %(category)s, %(count)s articles total.',
+            article_count,
+        ) % {
+            'category': categoryname,
+            'count': article_count,
+        }
         kwargs['seo_keywords'] = f"{categoryname}, {blog_setting.site_keywords}"
         
         return super(CategoryDetailView, self).get_context_data(**kwargs)
@@ -351,8 +367,15 @@ class AuthorDetailView(OptimizedArticleQueryMixin, ArticleListView):
         # 添加基础SEO数据
         blog_setting = get_blog_setting()
         article_count = self.get_queryset().count()
-        kwargs['seo_title'] = f"{author_name} 的文章 | {blog_setting.site_name}"
-        kwargs['seo_description'] = f"浏览 {author_name} 发表的所有文章，共 {article_count} 篇。"
+        kwargs['seo_title'] = f"{author_name} {_('articles')} | {blog_setting.get_site_name()}"
+        kwargs['seo_description'] = ngettext(
+            'Browse all articles by %(author)s, %(count)s article total.',
+            'Browse all articles by %(author)s, %(count)s articles total.',
+            article_count,
+        ) % {
+            'author': author_name,
+            'count': article_count,
+        }
         kwargs['seo_keywords'] = f"{author_name}, {blog_setting.site_keywords}"
         
         return super(AuthorDetailView, self).get_context_data(**kwargs)
@@ -389,8 +412,15 @@ class TagDetailView(SlugCachedMixin, OptimizedArticleQueryMixin, ArticleListView
         # 添加基础SEO数据
         blog_setting = get_blog_setting()
         article_count = self.get_queryset().count()
-        kwargs['seo_title'] = f"{tag.name} | {blog_setting.site_name}"
-        kwargs['seo_description'] = f"浏览所有关于 {tag.name} 的文章，共 {article_count} 篇内容。"
+        kwargs['seo_title'] = f"{tag.name} | {blog_setting.get_site_name()}"
+        kwargs['seo_description'] = ngettext(
+            'Browse all articles about %(tag)s, %(count)s article total.',
+            'Browse all articles about %(tag)s, %(count)s articles total.',
+            article_count,
+        ) % {
+            'tag': tag.name,
+            'count': article_count,
+        }
         kwargs['seo_keywords'] = f"{tag.name}, {blog_setting.site_keywords}"
         
         return super(TagDetailView, self).get_context_data(**kwargs)
@@ -526,13 +556,13 @@ def feedback_submit_view(request):
 
     # 输入验证
     if not content or len(content) < 10:
-        return JsonResponse({'error': '反馈内容至少需要10个字符'}, status=400)
+        return JsonResponse({'error': _('Feedback content must be at least 10 characters.')}, status=400)
     if len(content) > 2000:
-        return JsonResponse({'error': '反馈内容不能超过2000个字符'}, status=400)
+        return JsonResponse({'error': _('Feedback content must be no more than 2000 characters.')}, status=400)
     if len(contact) > 200:
-        return JsonResponse({'error': '联系方式不能超过200个字符'}, status=400)
+        return JsonResponse({'error': _('Contact must be no more than 200 characters.')}, status=400)
     if not idempotency_key or len(idempotency_key) > 64:
-        return JsonResponse({'error': '无效的请求标识'}, status=400)
+        return JsonResponse({'error': _('Invalid request identifier.')}, status=400)
 
     # 去除 HTML 标签
     content = re.sub(r'<[^>]+>', '', content)
@@ -546,7 +576,7 @@ def feedback_submit_view(request):
     rate_key = f'feedback-rate:{ip}'
     current_count = django_cache.get(rate_key)
     if current_count is not None and current_count >= 3:
-        return JsonResponse({'error': '提交过于频繁，请稍后再试'}, status=429)
+        return JsonResponse({'error': _('Too many submissions. Please try again later.')}, status=429)
 
     # 幂等性: 重复 key 静默返回成功
     if Feedback.objects.filter(idempotency_key=idempotency_key).exists():

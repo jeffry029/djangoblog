@@ -5,11 +5,12 @@ from unittest.mock import patch, Mock
 
 from django.test import TestCase, RequestFactory
 from django.utils import timezone
+from django.utils import translation
 
 from accounts.models import BlogUser
 from blog.context_processors import seo_processor
-from blog.models import Category, Article
-from djangoblog.utils import cache
+from blog.models import Category, Article, BlogSettings
+from djangoblog.utils import cache, get_blog_setting
 
 
 class SeoProcessorTest(TestCase):
@@ -99,6 +100,57 @@ class SeoProcessorTest(TestCase):
         # 注意：SITE_BASE_URL和CURRENT_YEAR是动态的，可能不同
         self.assertEqual(result1['SITE_NAME'], result2['SITE_NAME'])
         self.assertEqual(result1['SITE_DESCRIPTION'], result2['SITE_DESCRIPTION'])
+
+    def test_processor_uses_english_site_identity_for_english_locale(self):
+        """测试英文语言下站点名和 slogan 使用英文配置"""
+        BlogSettings.objects.update_or_create(
+            id=1,
+            defaults={
+                'site_name': '开发者雷达',
+                'site_name_en': 'Developer Radar',
+                'site_description': '中文 slogan',
+                'site_description_en': 'English slogan',
+                'site_seo_description': '中文 SEO',
+                'site_seo_description_en': 'English SEO',
+                'site_keywords': 'test',
+            }
+        )
+        cache.clear()
+
+        with translation.override('en'):
+            result = seo_processor(self.factory.get('/en/'))
+
+        self.assertEqual(result['SITE_NAME'], 'Developer Radar')
+        self.assertEqual(result['SITE_DESCRIPTION'], 'English slogan')
+        self.assertEqual(result['SITE_SEO_DESCRIPTION'], 'English SEO')
+
+    def test_get_blog_setting_backfills_english_site_identity(self):
+        """测试旧站点配置会补全英文站点名和 slogan 默认值"""
+        BlogSettings.objects.update_or_create(
+            id=1,
+            defaults={
+                'site_name': '开发者雷达',
+                'site_name_en': '',
+                'site_description': '中文 slogan',
+                'site_description_en': '',
+                'site_seo_description': '中文 SEO',
+                'site_seo_description_en': '',
+                'site_keywords': 'test',
+            }
+        )
+        cache.clear()
+
+        setting = get_blog_setting()
+
+        self.assertEqual(setting.site_name_en, 'Developer Radar')
+        self.assertEqual(
+            setting.site_description_en,
+            'AI-curated technical articles, programming practices, and artificial intelligence news.'
+        )
+        self.assertEqual(
+            setting.site_seo_description_en,
+            'AI-curated technical articles, programming practices, and artificial intelligence news.'
+        )
 
     def test_processor_with_anonymous_user(self):
         """测试匿名用户访问时的上下文处理器"""

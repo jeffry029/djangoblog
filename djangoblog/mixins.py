@@ -10,6 +10,7 @@ import logging
 from django.db import models
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now
+from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 logger = logging.getLogger(__name__)
@@ -225,7 +226,8 @@ class CachedListViewMixin:
         Returns:
             QuerySet: 查询结果（从缓存或数据库）
         """
-        key = self.get_queryset_cache_key()
+        language = get_language() or 'default'
+        key = f'{self.get_queryset_cache_key()}_{language}'
         return self.get_queryset_from_cache(key)
 
 

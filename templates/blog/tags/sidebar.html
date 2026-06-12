@@ -19,7 +19,7 @@
                 <svg class="size-5 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                 </svg>
-                热门文章
+                {% trans 'Popular articles' %}
             </h3>
             <ul class="m-0 flex list-none flex-col gap-4 p-0">
                 {% for a in most_read_articles %}
@@ -27,7 +27,7 @@
                         <span class="font-headline text-2xl font-extrabold leading-none text-primary-600/10">{{ forloop.counter }}</span>
                         <a href="{{ a.get_absolute_url }}" class="group min-w-0">
                             <span class="line-clamp-2 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary-600">
-                                {{ a.title }}
+                                {{ a.get_title }}
                             </span>
                             <span class="mt-1 block text-[11px] text-muted-foreground">{{ a.views }} {% trans 'views' %}</span>
                         </a>
@@ -52,7 +52,7 @@
                             <img src="{{ c.author.email|gravatar_url:32 }}" alt="{{ c.author.username }}" class="mt-1 size-7 shrink-0 rounded-full" loading="lazy">
                             <span class="min-w-0">
                                 <span class="line-clamp-2 text-sm leading-snug text-foreground group-hover:text-primary-600">{{ c.body|striptags|truncatechars:60 }}</span>
-                                <span class="mt-1 block text-[11px] text-muted-foreground">{{ c.author.username }} · {{ c.creation_time|timesince }}前</span>
+                                <span class="mt-1 block text-[11px] text-muted-foreground">{{ c.author.username }} · {% blocktrans with time=c.creation_time|timesince %}{{ time }} ago{% endblocktrans %}</span>
                             </span>
                         </a>
                     </li>
@@ -91,7 +91,7 @@
                 {% for a in recent_articles %}
                     <li>
                         <a href="{{ a.get_absolute_url }}" class="group block">
-                            <span class="line-clamp-2 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary-600">{{ a.title }}</span>
+                            <span class="line-clamp-2 text-sm font-semibold leading-snug text-foreground transition-colors group-hover:text-primary-600">{{ a.get_title }}</span>
                             <span class="mt-1 block text-[11px] text-muted-foreground">{{ a.pub_time|date:"Y-m-d" }}</span>
                         </a>
                     </li>

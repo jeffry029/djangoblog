@@ -7,8 +7,10 @@ from blog.services.collectors import (
     append_source_link,
     extract_markdown_title,
     extract_source_url,
+    normalize_rewritten_article,
     rewrite_article,
     strip_leading_markdown_title,
+    strip_source_link_lines,
 )
 
 
@@ -45,11 +47,25 @@ class Command(BaseCommand):
         if not rewritten:
             raise CommandError('LLM 未返回可用内容')
 
-        title = extract_markdown_title(rewritten) or article.title
-        body = strip_leading_markdown_title(rewritten, title)
+        rewritten = normalize_rewritten_article(rewritten)
+        title = rewritten.get('title_zh') or extract_markdown_title(rewritten.get('body_zh', '')) or article.title
+        body = strip_source_link_lines(rewritten.get('body_zh') or '')
+        body = strip_leading_markdown_title(body, title)
         article.title = title[:200]
         article.body = append_source_link(body, source_url)
-        article.save(update_fields=['title', 'body', 'last_modify_time'])
+        article.title_en = (rewritten.get('title_en') or '')[:200]
+        article.body_en = strip_source_link_lines(rewritten.get('body_en') or '')
+        if article.title_en:
+            article.body_en = strip_leading_markdown_title(article.body_en, article.title_en)
+        article.seo_description_en = rewritten.get('seo_description_en') or ''
+        article.save(update_fields=[
+            'title',
+            'body',
+            'title_en',
+            'body_en',
+            'seo_description_en',
+            'last_modify_time',
+        ])
 
         self.stdout.write(self.style.SUCCESS(
             f'Rewritten article {article.pk}: {article.title}'

@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.timezone import now
+from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from mdeditor.fields import MDTextField
 from uuslug import slugify
@@ -81,6 +82,9 @@ class Article(BaseModel):
     )
     title = models.CharField(_('title'), max_length=200, unique=True)
     body = MDTextField(_('body'))
+    title_en = models.CharField(_('English title'), max_length=200, blank=True, default='')
+    body_en = MDTextField(_('English body'), blank=True, default='')
+    seo_description_en = models.TextField(_('English SEO description'), blank=True, default='')
     pub_time = models.DateTimeField(
         _('publish time'), blank=False, null=False, default=now)
     status = models.CharField(
@@ -113,7 +117,7 @@ class Article(BaseModel):
     tags = models.ManyToManyField('Tag', verbose_name=_('tag'), blank=True)
 
     def body_to_string(self):
-        return self.body
+        return self.get_body()
 
     def __str__(self):
         return self.title
@@ -142,10 +146,54 @@ class Article(BaseModel):
             'day': self.creation_time.day
         })
 
+    def get_absolute_url_for_language(self, language_code):
+        with translation.override(language_code):
+            return self.get_absolute_url()
+
+    def get_full_url_for_language(self, language_code):
+        site = get_current_site().domain
+        return "https://{site}{path}".format(
+            site=site,
+            path=self.get_absolute_url_for_language(language_code),
+        )
+
+    @staticmethod
+    def _is_english_language(language_code=None):
+        language_code = language_code or translation.get_language() or settings.LANGUAGE_CODE
+        return language_code.lower().startswith('en')
+
+    @staticmethod
+    def _clean_localized_value(value):
+        return (value or '').strip()
+
+    def has_english_content(self):
+        return bool(self._clean_localized_value(self.title_en) and self._clean_localized_value(self.body_en))
+
+    def get_title(self, language_code=None):
+        if self._is_english_language(language_code):
+            title = self._clean_localized_value(self.title_en)
+            if title:
+                return title
+        return self.title
+
+    def get_body(self, language_code=None):
+        if self._is_english_language(language_code):
+            body = self._clean_localized_value(self.body_en)
+            if body:
+                return body
+        return self.body
+
+    def get_seo_description(self, language_code=None):
+        if self._is_english_language(language_code):
+            description = self._clean_localized_value(self.seo_description_en)
+            if description:
+                return description
+        return ''
+
     @cache_decorator(CacheTimeout.HOUR_10)
-    def get_category_tree(self):
+    def get_category_tree(self, language_code=None):
         tree = self.category.get_category_tree()
-        names = list(map(lambda c: (c.name, c.get_absolute_url()), tree))
+        names = list(map(lambda c: (c.get_name(language_code), c.get_absolute_url()), tree))
 
         return names
 
@@ -188,7 +236,7 @@ class Article(BaseModel):
         Get the first image url from article.body.
         :return:
         """
-        match = re.search(r'!\[.*?\]\((.+?)\)', self.body)
+        match = re.search(r'!\[.*?\]\((.+?)\)', self.get_body())
         if match:
             return match.group(1)
         return ""
@@ -197,6 +245,7 @@ class Article(BaseModel):
 class Category(BaseModel):
     """文章分类"""
     name = models.CharField(_('category name'), max_length=30, unique=True)
+    name_en = models.CharField(_('English category name'), max_length=60, blank=True, default='')
     parent_category = models.ForeignKey(
         'self',
         verbose_name=_('parent category'),
@@ -217,6 +266,22 @@ class Category(BaseModel):
                 'category_name': self.slug})
 
     def __str__(self):
+        return self.name
+
+    @staticmethod
+    def _is_english_language(language_code=None):
+        language_code = language_code or translation.get_language() or settings.LANGUAGE_CODE
+        return language_code.lower().startswith('en')
+
+    @staticmethod
+    def _clean_localized_value(value):
+        return (value or '').strip()
+
+    def get_name(self, language_code=None):
+        if self._is_english_language(language_code):
+            name = self._clean_localized_value(self.name_en)
+            if name:
+                return name
         return self.name
 
     @cache_decorator(CacheTimeout.HOUR_10)
@@ -426,14 +491,26 @@ class BlogSettings(models.Model):
         null=False,
         blank=False,
         default='')
+    site_name_en = models.CharField(
+        _('English site name'),
+        max_length=200,
+        blank=True,
+        default='')
     site_description = models.TextField(
         _('site description'),
         max_length=1000,
         null=False,
         blank=False,
         default='')
+    site_description_en = models.TextField(
+        _('English site description'),
+        max_length=1000,
+        blank=True,
+        default='')
     site_seo_description = models.TextField(
         _('site seo description'), max_length=1000, null=False, blank=False, default='')
+    site_seo_description_en = models.TextField(
+        _('English site SEO description'), max_length=1000, blank=True, default='')
     site_keywords = models.TextField(
         _('site keywords'),
         max_length=1000,
@@ -486,6 +563,36 @@ class BlogSettings(models.Model):
 
     def __str__(self):
         return self.site_name
+
+    @staticmethod
+    def _is_english_language(language_code=None):
+        language_code = language_code or translation.get_language() or settings.LANGUAGE_CODE
+        return language_code.lower().startswith('en')
+
+    @staticmethod
+    def _clean_localized_value(value):
+        return (value or '').strip()
+
+    def get_site_name(self, language_code=None):
+        if self._is_english_language(language_code):
+            site_name = self._clean_localized_value(self.site_name_en)
+            if site_name:
+                return site_name
+        return self.site_name
+
+    def get_site_description(self, language_code=None):
+        if self._is_english_language(language_code):
+            description = self._clean_localized_value(self.site_description_en)
+            if description:
+                return description
+        return self.site_description
+
+    def get_site_seo_description(self, language_code=None):
+        if self._is_english_language(language_code):
+            description = self._clean_localized_value(self.site_seo_description_en)
+            if description:
+                return description
+        return self.site_seo_description
 
     def clean(self):
         if BlogSettings.objects.exclude(id=self.id).count():

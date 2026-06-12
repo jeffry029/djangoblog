@@ -1,4 +1,5 @@
 {% load blog_tags %}
+{% load i18n %}
 
 <li class="comment comment-depth-{{ depth }}"
     id="comment-{{ comment_item.pk }}"
@@ -7,9 +8,7 @@
     <div id="div-comment-{{ comment_item.pk }}"
          class="comment-body p-4 md:p-5 bg-card rounded-xl border border-border shadow-sm transition-colors duration-200 hover:border-primary/20">
 
-        <!-- 评论头部 -->
         <div class="flex items-start gap-3 md:gap-4">
-            <!-- 头像 -->
             <div class="flex-shrink-0">
                 <img alt="{{ comment_item.author.username }}"
                      src="{{ comment_item.author.email|gravatar_url:80 }}"
@@ -19,9 +18,7 @@
                      decoding="async">
             </div>
 
-            <!-- 评论内容 -->
             <div class="flex-1 min-w-0">
-                <!-- 作者和时间 -->
                 <div class="flex items-center justify-between mb-2 flex-wrap gap-2">
                     <div class="flex items-center gap-2">
                         <cite class="not-italic font-semibold text-sm text-foreground">
@@ -38,7 +35,7 @@
 
                         {% if comment_item.author.is_superuser %}
                             <span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                                博主
+                                {% trans '博主' %}
                             </span>
                         {% endif %}
                     </div>
@@ -49,13 +46,12 @@
                     </time>
                 </div>
 
-                <!-- 回复提示 -->
                 {% if comment_item.parent_comment %}
                     <div class="mb-2 flex items-center gap-1 text-xs text-muted-foreground">
                         <svg class="size-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
                         </svg>
-                        回复
+                        {% trans '回复' %}
                         <a href="#comment-{{ comment_item.parent_comment.pk }}"
                            class="font-medium text-primary hover:text-primary/80 transition-colors">
                             @{{ comment_item.parent_comment.author.username }}
@@ -63,7 +59,6 @@
                     </div>
                 {% endif %}
 
-                <!-- 评论正文 -->
                 <div class="entry-content prose prose-sm dark:prose-invert max-w-none text-foreground/90">
                     {{ comment_item.body|comment_markdown }}
                 </div>
@@ -71,7 +66,6 @@
         </div>
     </div>
 
-    <!-- 嵌套评论（递归，最大缩进3层） -->
     {% query article_comments parent_comment=comment_item as cc_comments %}
     {% if cc_comments %}
         <ul class="mt-4 flex flex-col gap-4 m-0 p-0 list-none {% if depth < 2 %}ml-2 md:ml-4 border-l-2 border-border pl-2 md:pl-4{% endif %}">

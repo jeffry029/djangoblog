@@ -1,9 +1,10 @@
 {% load blog_tags %}
+{% load i18n %}
 <li id="comment-{{ comment_item.pk }}"
     class="comment even thread-even depth-{{ depth }} parent {% if depth == 1 %}ml-3 md:ml-12{% elif depth == 2 %}ml-6 md:ml-24{% elif depth >= 3 %}ml-9 md:ml-36{% endif %}">
     <div id="div-comment-{{ comment_item.pk }}" class="comment-body">
         <div class="comment-author vcard">
-            <img alt="{{ comment_item.author.username }}的头像"
+            <img alt="{% blocktrans with username=comment_item.author.username %}{{ username }} avatar{% endblocktrans %}"
                  src="{{ comment_item.author.email|gravatar_url:150 }}"
                  srcset="{{ comment_item.author.email|gravatar_url:150 }}"
                  class="avatar avatar-96 photo"
@@ -28,7 +29,7 @@
         </div>
         <p>
             {% if comment_item.parent_comment %}
-                <div>回复 <a
+                <div>{% trans '回复' %} <a
                         href="#comment-{{ comment_item.parent_comment.pk }}">@{{ comment_item.parent_comment.author.username }}</a>
                 </div>
             {% endif %}
@@ -38,7 +39,7 @@
 
         <div class="reply"><a rel="nofollow" class="comment-reply-link"
                               href="javascript:void(0)" data-pk="{{ comment_item.pk }}"
-                              aria-label="回复给{{ comment_item.author.username }}">回复</a></div>
+                              aria-label="{% blocktrans with username=comment_item.author.username %}Reply to {{ username }}{% endblocktrans %}">{% trans '回复' %}</a></div>
     </div>
 
 </li><!-- #comment-## -->

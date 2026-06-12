@@ -14,6 +14,7 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
 from blog.models import Article, Category, Tag, Links, SideBar, LinkShowType
 from comments.models import Comment
@@ -101,7 +102,7 @@ def render_article_content(context, article, is_summary=False):
     if not article or not hasattr(article, 'body'):
         return ''
     
-    body = _strip_article_source_link_lines(article.body)
+    body = _strip_article_source_link_lines(article.get_body() if hasattr(article, 'get_body') else article.body)
 
     # 先转换Markdown为HTML
     html_content = CommonMarkdown.get_markdown(body)
@@ -154,7 +155,7 @@ def article_summary_text(context, article):
     from django.template.defaultfilters import truncatechars
     from djangoblog.utils import get_blog_setting
 
-    body = _strip_article_source_link_lines(article.body)
+    body = _strip_article_source_link_lines(article.get_body() if hasattr(article, 'get_body') else article.body)
     html_content = CommonMarkdown.get_markdown(body)
     soup = BeautifulSoup(html_content, 'html.parser')
     for tag in soup.find_all(['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'code', 'pre', 'script', 'style']):
@@ -182,12 +183,12 @@ def article_source_url(article):
 def article_source_name(article):
     source_url = _extract_article_source_url(getattr(article, 'body', '') or '')
     if not source_url:
-        return '开放技术博客'
+        return _('Open tech blogs')
     from urllib.parse import urlparse
     host = urlparse(source_url).netloc.lower()
     if host.startswith('www.'):
         host = host[4:]
-    return host or '开放技术博客'
+    return host or _('Open tech blogs')
 
 
 def _extract_article_source_url(body):
@@ -300,16 +301,16 @@ def load_breadcrumb(article):
     :param article:
     :return:
     """
-    names = article.get_category_tree()
+    from django.utils import translation
+    names = article.get_category_tree(translation.get_language())
     from djangoblog.utils import get_blog_setting
     blogsetting = get_blog_setting()
-    site = get_current_site().domain
-    names.append((blogsetting.site_name, '/'))
+    names.append((blogsetting.get_site_name(), reverse('blog:index')))
     names = names[::-1]
 
     return {
         'names': names,
-        'title': article.title,
+        'title': article.get_title() if hasattr(article, 'get_title') else article.title,
         'count': len(names) + 1
     }
 
@@ -432,7 +433,9 @@ def load_pagination_info(page_obj, page_type, tag_name):
     if page_type == '分类标签归档':
         _slug = get_object_or_404(Tag, name=tag_name).slug
     elif page_type == '分类目录归档':
-        _slug = get_object_or_404(Category, name=tag_name).slug
+        _slug = get_object_or_404(
+            Category.objects.filter(Q(name=tag_name) | Q(name_en=tag_name))
+        ).slug
 
     def _build_url(page_number):
         """Build URL for a given page number based on page_type."""

@@ -17,10 +17,12 @@ from django.conf import settings
 from django.conf.urls.i18n import i18n_patterns
 from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
+from django.http import Http404
 from django.urls import path, include
 from django.urls import re_path
 from django.http import HttpResponse, JsonResponse
 import time
+from pathlib import Path
 
 from djangoblog.feeds import DjangoBlogFeed
 from djangoblog.sitemap import ArticleSiteMap, CategorySiteMap, StaticViewSitemap, TagSiteMap, UserSiteMap
@@ -64,12 +66,27 @@ def robots_txt(request):
     ]
     return HttpResponse('\n'.join(lines) + '\n', content_type='text/plain')
 
+
+def indexnow_key_file(request, key):
+    expected_key = getattr(settings, 'INDEXNOW_KEY', '')
+    if key != expected_key:
+        raise Http404
+
+    key_path = Path(getattr(settings, 'INDEXNOW_KEY_FILE_PATH', ''))
+    try:
+        content = key_path.read_text(encoding='utf-8')
+    except OSError:
+        raise Http404
+    return HttpResponse(content, content_type='text/plain')
+
+
 urlpatterns = [
     path('i18n/', include('django.conf.urls.i18n')),
     path('health/', health_check, name='health_check'),
     path('robots.txt', robots_txt, name='robots_txt'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps},
          name='django.contrib.sitemaps.views.sitemap'),
+    re_path(r'^(?P<key>[0-9A-Za-z_-]{8,128})\.txt$', indexnow_key_file, name='indexnow_key_file'),
 ]
 urlpatterns += i18n_patterns(
     re_path(r'', include('blog.urls', namespace='blog')),

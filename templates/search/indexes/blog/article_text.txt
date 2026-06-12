@@ -1,3 +1,5 @@
 {{ object.title }}
+{{ object.title_en }}
 {{ object.author.username }}
 {{ object.body }}
+{{ object.body_en }}

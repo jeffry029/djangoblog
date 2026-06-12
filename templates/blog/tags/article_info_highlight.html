@@ -13,7 +13,7 @@
                         {% if highlighted.title %}
                             {{ highlighted.title.0|safe }}
                         {% else %}
-                            {{ article.title }}
+                            {{ article.get_title }}
                         {% endif %}
                     </a>
                 {% else %}
@@ -21,7 +21,7 @@
                         {% if highlighted.title %}
                             {{ highlighted.title.0|safe }}
                         {% else %}
-                            {{ article.title }}
+                            {{ article.get_title }}
                         {% endif %}
                     </a>
                 {% endif %}
@@ -29,7 +29,7 @@
                 {% if highlighted.title %}
                     {{ highlighted.title.0|safe }}
                 {% else %}
-                    {{ article.title }}
+                    {{ article.get_title }}
                 {% endif %}
             {% endif %}
         </h1>
@@ -53,7 +53,8 @@
         <br/>
         {% if article.type == 'a' %}
             {% if not isindex %}
-                {% cache 36000 breadcrumb article.pk %}
+                {% get_current_language as CURRENT_LANGUAGE %}
+                {% cache 36000 breadcrumb article.pk CURRENT_LANGUAGE %}
                     {% load_breadcrumb article %}
                 {% endcache %}
             {% endif %}
@@ -78,7 +79,7 @@
         {% else %}
             {# 详情页显示完整内容（不高亮，因为高亮只在搜索结果列表有意义） #}
             {% if article.show_toc %}
-                {% get_markdown_toc article.body as toc %}
+                {% get_markdown_toc article.get_body as toc %}
                 <b>{% trans 'toc' %}:</b>
                 {{ toc|safe }}
                 <hr class="break_line"/>

@@ -9,23 +9,30 @@ from .models import Category, Article
 logger = logging.getLogger(__name__)
 PUBLIC_SITE_NAME = '开发者雷达'
 PUBLIC_SITE_DESCRIPTION = 'AI 精选与摘要技术文章、编程实践和人工智能新闻。'
+PUBLIC_SITE_NAME_EN = 'Developer Radar'
+PUBLIC_SITE_DESCRIPTION_EN = 'AI-curated technical articles, programming practices, and artificial intelligence news.'
 
 
 def seo_processor(requests):
+    setting = get_blog_setting()
+    site_name = setting.get_site_name() or PUBLIC_SITE_NAME
+    site_description = setting.get_site_description() or PUBLIC_SITE_DESCRIPTION
+    site_seo_description = setting.get_site_seo_description() or site_description
+
     key = 'seo_processor'
     value = cache.get(key)
     if value:
+        value = value.copy()
         # 更新动态值（不需要缓存的内容）
         value['SITE_BASE_URL'] = requests.scheme + '://' + requests.get_host() + '/'
         value['CURRENT_YEAR'] = timezone.now().year
-        value['SITE_NAME'] = PUBLIC_SITE_NAME
-        value['SITE_DESCRIPTION'] = PUBLIC_SITE_DESCRIPTION
-        value['SITE_SEO_DESCRIPTION'] = PUBLIC_SITE_DESCRIPTION
+        value['SITE_NAME'] = site_name
+        value['SITE_DESCRIPTION'] = site_description
+        value['SITE_SEO_DESCRIPTION'] = site_seo_description
         value['SHOW_API_PROMO'] = settings.SHOW_API_PROMO
         return value
     else:
         logger.info('set processor cache.')
-        setting = get_blog_setting()
 
         # 优化查询：预加载关联数据
         nav_category_list = Category.objects.all()
@@ -35,12 +42,12 @@ def seo_processor(requests):
         )
 
         value = {
-            'SITE_NAME': PUBLIC_SITE_NAME,
+            'SITE_NAME': site_name,
             'SHOW_GOOGLE_ADSENSE': setting.show_google_adsense,
             'GOOGLE_ADSENSE_CODES': setting.google_adsense_codes,
             'SHOW_API_PROMO': settings.SHOW_API_PROMO,
-            'SITE_SEO_DESCRIPTION': PUBLIC_SITE_DESCRIPTION,
-            'SITE_DESCRIPTION': PUBLIC_SITE_DESCRIPTION,
+            'SITE_SEO_DESCRIPTION': site_seo_description,
+            'SITE_DESCRIPTION': site_description,
             'SITE_KEYWORDS': setting.site_keywords,
             'SITE_BASE_URL': requests.scheme + '://' + requests.get_host() + '/',
             'ARTICLE_SUB_LENGTH': setting.article_sub_length,

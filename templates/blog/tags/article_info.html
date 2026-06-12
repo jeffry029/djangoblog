@@ -7,19 +7,19 @@
         <h2 class="m-0 font-headline text-[21px] font-semibold leading-snug text-primary-600 transition-colors group-hover:text-primary-500 md:text-[24px]">
             <a href="{{ article.get_absolute_url }}" rel="bookmark" class="text-current hover:text-current">
                 {% if article.article_order > 0 %}
-                    <span class="mr-1 align-middle text-[13px] font-semibold text-primary-500">置顶</span>
+                    <span class="mr-1 align-middle text-[13px] font-semibold text-primary-500">{% trans 'Pinned' %}</span>
                 {% endif %}
                 {% if query %}
-                    {{ article.title|highlight_search_term:query }}
+                    {{ article.get_title|highlight_search_term:query }}
                 {% else %}
-                    {{ article.title }}
+                    {{ article.get_title }}
                 {% endif %}
             </a>
         </h2>
 
         <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-muted-foreground">
             <time datetime="{{ article.pub_time|date:'c' }}">{{ article.pub_time|date:"Y-m-d" }}</time>
-            <span>来源：{{ source_name }}</span>
+            <span>{% trans 'Source' %}: {{ source_name }}</span>
             <span class="inline-flex items-center gap-1">
                 <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
@@ -43,7 +43,7 @@
             </div>
 
             <a href="{{ article.get_absolute_url }}" class="editorial-read-more">
-                阅读全文
+                {% trans 'Read full article' %}
             </a>
         </div>
     </div>

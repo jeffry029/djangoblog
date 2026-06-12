@@ -2,6 +2,7 @@ import os
 import re
 import time
 import hashlib
+import json
 import logging
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -17,6 +18,7 @@ from django.db import IntegrityError
 from django.utils import timezone
 
 from blog.models import Article, Category, NewsItem, Tag
+from djangoblog.indexnow import notify_indexnow_articles
 from djangoblog.utils import cache
 
 
@@ -92,6 +94,11 @@ class CollectorResult:
     created: int = 0
     skipped: int = 0
     failed: int = 0
+    created_articles: list = None
+
+    def __post_init__(self):
+        if self.created_articles is None:
+            self.created_articles = []
 
 
 TAG_KEYWORDS = {
@@ -280,8 +287,13 @@ def collect_tech_articles(limit=5, feeds=None, hours=None):
         if not rewritten:
             result.skipped += 1
             continue
+        if not normalize_rewritten_article(rewritten).get('body_zh'):
+            logger.warning('Skipping article with invalid bilingual rewrite: %s', entry['url'])
+            result.skipped += 1
+            continue
         try:
-            publish_rewritten_article(entry, rewritten)
+            article = publish_rewritten_article(entry, rewritten)
+            result.created_articles.append(article)
             result.created += 1
         except IntegrityError:
             result.skipped += 1
@@ -316,8 +328,15 @@ def rewrite_article(entry):
                     'content': (
                         f"来源标题：{entry['title']}\n"
                         f"来源摘要：{entry['summary']}\n\n"
-                        "请按 skill 要求写成一篇完整中文技术文章。"
-                        "必须包含至少一个和主题相关、可复制运行或改造的代码/命令/YAML 示例。"
+                        "请输出一个 JSON 对象，不要输出 Markdown fence。字段必须为：\n"
+                        "- title_zh: 中文标题\n"
+                        "- body_zh: 完整中文 Markdown 正文\n"
+                        "- title_en: English title\n"
+                        "- body_en: Complete English Markdown body\n"
+                        "- seo_description_en: English SEO summary within 160 characters\n\n"
+                        "中文正文仍需符合 skill 要求，必须包含至少一个和主题相关、可复制运行或改造的代码/命令/YAML 示例。"
+                        "英文正文应表达同一篇文章的英文版本，不要逐字僵硬翻译。"
+                        "不要包含原文链接，发布流水线会追加来源链接。"
                     )
                 },
             ],
@@ -331,23 +350,80 @@ def rewrite_article(entry):
                 getattr(response.usage, 'completion_tokens', None),
                 getattr(response.usage, 'total_tokens', None),
             )
-        return response.choices[0].message.content.strip()
+        return parse_rewritten_article(response.choices[0].message.content.strip())
     except Exception:
         logger.exception('Failed to rewrite article with LLM: %s', entry.get('url'))
-        return ''
+        return {}
 
 
-def publish_rewritten_article(entry, body):
+def parse_rewritten_article(content):
+    raw = (content or '').strip()
+    if not raw:
+        return {}
+    if raw.startswith('```'):
+        raw = re.sub(r'^```(?:json)?\s*', '', raw, flags=re.I)
+        raw = re.sub(r'\s*```$', '', raw).strip()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        title = extract_markdown_title(raw)
+        body = strip_leading_markdown_title(raw, title) if title else raw
+        return {
+            'title_zh': title,
+            'body_zh': body,
+            'title_en': '',
+            'body_en': '',
+            'seo_description_en': '',
+        }
+    return normalize_rewritten_article(data)
+
+
+def normalize_rewritten_article(rewritten):
+    if isinstance(rewritten, str):
+        title = extract_markdown_title(rewritten)
+        body = strip_leading_markdown_title(rewritten, title) if title else rewritten
+        return {
+            'title_zh': title,
+            'body_zh': body,
+            'title_en': '',
+            'body_en': '',
+            'seo_description_en': '',
+        }
+    if not isinstance(rewritten, dict):
+        return {}
+    return {
+        'title_zh': normalize_text(rewritten.get('title_zh') or rewritten.get('title') or ''),
+        'body_zh': (rewritten.get('body_zh') or rewritten.get('body') or '').strip(),
+        'title_en': normalize_text(rewritten.get('title_en') or ''),
+        'body_en': (rewritten.get('body_en') or '').strip(),
+        'seo_description_en': normalize_text(rewritten.get('seo_description_en') or '')[:300],
+    }
+
+
+def publish_rewritten_article(entry, rewritten):
+    rewritten = normalize_rewritten_article(rewritten)
+    if not rewritten.get('body_zh'):
+        raise ValueError('Rewritten article is missing body_zh')
     category_name, tag_names = determine_article_taxonomy(entry)
     category, _ = Category.objects.get_or_create(name=category_name)
+    if category.name == '文章' and not category.name_en:
+        category.name_en = 'Articles'
+        category.save(update_fields=['name_en', 'last_modify_time'])
     author = get_default_author()
-    body = strip_source_link_lines(body)
-    title = extract_markdown_title(body) or entry['title']
+    body = strip_source_link_lines(rewritten['body_zh'])
+    title = rewritten.get('title_zh') or extract_markdown_title(body) or entry['title']
     body = strip_leading_markdown_title(body, title)
+    body_en = strip_source_link_lines(rewritten.get('body_en') or '')
+    title_en = rewritten.get('title_en') or extract_markdown_title(body_en)
+    if title_en:
+        body_en = strip_leading_markdown_title(body_en, title_en)
     pub_time = clamp_future_pub_time(normalize_model_datetime(entry['published_at']))
     article = Article.objects.create(
         title=title[:200],
         body=append_source_link(body, entry['url']),
+        title_en=title_en[:200],
+        body_en=body_en,
+        seo_description_en=rewritten.get('seo_description_en', ''),
         pub_time=pub_time or timezone.now(),
         status='p',
         type='a',
@@ -400,6 +476,8 @@ def run_collectors_loop(interval=1800):
             article_result.skipped,
             article_result.failed,
         )
+        if article_result.created_articles:
+            notify_indexnow_articles(article_result.created_articles)
         time.sleep(interval)
 
 

@@ -1,9 +1,10 @@
 {% extends 'share_layout/base.html' %}
 {% load blog_tags %}
+{% load i18n %}
 
 {% block header %}
-    <title>{% if query %}搜索：{{ query }}{% else %}搜索{% endif %} | {{ SITE_NAME }}</title>
-    <meta name="description" content="按标题搜索文章和新闻"/>
+    <title>{% if query %}{% trans 'Search' %}: {{ query }}{% else %}{% trans 'Search' %}{% endif %} | {{ SITE_NAME }}</title>
+    <meta name="description" content="{% trans 'Search articles and news by title' %}"/>
 {% endblock %}
 
 {% block content %}
@@ -11,25 +12,25 @@
         <div class="editorial-section-heading mb-8">
             <p class="mb-2 text-[13px] font-medium text-muted-foreground">Title search</p>
             <h1 class="m-0 font-headline text-[28px] font-bold leading-tight text-primary-600 md:text-[34px]">
-                搜索{% if query %}：{{ query }}{% endif %}
+                {% trans 'Search' %}{% if query %}: {{ query }}{% endif %}
             </h1>
         </div>
 
         {% if query and result_count %}
             <div class="grid gap-8 lg:grid-cols-2">
                 <section>
-                    <h2 class="mb-4 font-headline text-xl font-bold text-foreground">文章</h2>
+                    <h2 class="mb-4 font-headline text-xl font-bold text-foreground">{% trans 'Articles' %}</h2>
                     <div class="editorial-feed-list">
                         {% for article in article_results %}
                             {% load_article_detail article True user query %}
                         {% empty %}
-                            <div class="p-6 text-sm text-muted-foreground">没有匹配的文章标题。</div>
+                            <div class="p-6 text-sm text-muted-foreground">{% trans 'No matching article titles.' %}</div>
                         {% endfor %}
                     </div>
                 </section>
 
                 <section>
-                    <h2 class="mb-4 font-headline text-xl font-bold text-foreground">新闻</h2>
+                    <h2 class="mb-4 font-headline text-xl font-bold text-foreground">{% trans 'News' %}</h2>
                     <div class="editorial-feed-list">
                         {% for item in news_results %}
                             <article class="editorial-news-card group">
@@ -50,18 +51,18 @@
                                 {% endif %}
                             </article>
                         {% empty %}
-                            <div class="p-6 text-sm text-muted-foreground">没有匹配的新闻标题。</div>
+                            <div class="p-6 text-sm text-muted-foreground">{% trans 'No matching news titles.' %}</div>
                         {% endfor %}
                     </div>
                 </section>
             </div>
         {% elif query %}
             <div class="rounded-lg border border-border/40 bg-card p-8 text-sm text-muted-foreground shadow-card">
-                没有找到标题包含“{{ query }}”的文章或新闻。
+                {% blocktrans %}No articles or news found with a title containing "{{ query }}".{% endblocktrans %}
             </div>
         {% else %}
             <div class="rounded-lg border border-border/40 bg-card p-8 text-sm text-muted-foreground shadow-card">
-                请输入关键词搜索文章标题和新闻标题。
+                {% trans 'Enter a keyword to search article and news titles.' %}
             </div>
         {% endif %}
     </div>

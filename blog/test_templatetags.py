@@ -55,6 +55,34 @@ class BlogTagsTest(BaseTestCase):
         self.assertFalse(page.has_next())
         self.assertTrue(page.has_previous())
 
+    def test_localized_next_url_removes_english_prefix_for_chinese(self):
+        request = self.factory.get('/en/news/', {'page': '2'})
+
+        result = localized_next_url({'request': request}, 'zh-hans')
+
+        self.assertEqual(result, '/news/?page=2')
+
+    def test_localized_next_url_adds_english_prefix(self):
+        request = self.factory.get('/news/', {'page': '2'})
+
+        result = localized_next_url({'request': request}, 'en')
+
+        self.assertEqual(result, '/en/news/?page=2')
+
+    def test_localized_next_url_switches_english_home_to_chinese_home(self):
+        request = self.factory.get('/en/')
+
+        result = localized_next_url({'request': request}, 'zh-hans')
+
+        self.assertEqual(result, '/')
+
+    def test_localized_next_url_preserves_home_query_when_switching_to_chinese(self):
+        request = self.factory.get('/en/', {'q': 'ai'})
+
+        result = localized_next_url({'request': request}, 'zh-hans')
+
+        self.assertEqual(result, '/?q=ai')
+
     def test_highlight_search_term(self):
         """测试搜索关键词高亮"""
         text = '这是一段包含关键词的文本'

@@ -122,10 +122,10 @@
                 <input name="next" type="hidden" value="{{ request.get_full_path }}"/>
                 <select name="language"
                         aria-label="{% trans 'Language' %}"
-                        onchange="this.form.submit()"
+                        onchange="this.form.elements['next'].value = this.options[this.selectedIndex].dataset.nextUrl; this.form.submit()"
                         class="h-9 rounded-lg border border-border/50 bg-secondary px-2 text-[13px] font-medium text-primary-600 focus:outline-none focus:ring-1 focus:ring-primary-600/50">
-                    <option value="zh-hans" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
-                    <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>EN</option>
+                    <option value="zh-hans" data-next-url="{% localized_next_url 'zh-hans' %}" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
+                    <option value="en" data-next-url="{% localized_next_url 'en' %}" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>EN</option>
                 </select>
             </form>
 
@@ -193,9 +193,9 @@
                 <input name="next" type="hidden" value="{{ request.get_full_path }}"/>
                 <label for="mobile-language-select" class="text-sm font-medium text-muted-foreground">{% trans 'Language' %}</label>
                 {% get_current_language as CURRENT_LANGUAGE %}
-                <select id="mobile-language-select" name="language" onchange="this.form.submit()" class="min-w-0 flex-1 bg-transparent text-sm text-foreground focus:outline-none">
-                    <option value="zh-hans" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
-                    <option value="en" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>English</option>
+                <select id="mobile-language-select" name="language" onchange="this.form.elements['next'].value = this.options[this.selectedIndex].dataset.nextUrl; this.form.submit()" class="min-w-0 flex-1 bg-transparent text-sm text-foreground focus:outline-none">
+                    <option value="zh-hans" data-next-url="{% localized_next_url 'zh-hans' %}" {% if CURRENT_LANGUAGE == 'zh-hans' %}selected{% endif %}>中文</option>
+                    <option value="en" data-next-url="{% localized_next_url 'en' %}" {% if CURRENT_LANGUAGE == 'en' %}selected{% endif %}>English</option>
                 </select>
             </form>
         </div>

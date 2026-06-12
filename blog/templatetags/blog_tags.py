@@ -12,6 +12,7 @@ from django.shortcuts import get_object_or_404
 from django.template.defaultfilters import stringfilter
 from django.templatetags.static import static
 from django.urls import reverse
+from django.utils import translation
 from django.utils.html import strip_tags
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -32,6 +33,37 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def head_meta(context):
     return mark_safe(hooks.apply_filters('head_meta', '', context))
+
+
+@register.simple_tag(takes_context=True)
+def localized_next_url(context, language_code):
+    request = context.get('request')
+    path = request.get_full_path() if request else '/'
+    default_language = settings.LANGUAGE_CODE.lower()
+    language_code = (language_code or default_language).lower()
+
+    with translation.override(language_code):
+        target = reverse('blog:index')
+    target_prefix = target[:-1] if target.endswith('/') else target
+
+    path_without_prefix = path
+    for code, _label in settings.LANGUAGES:
+        with translation.override(code):
+            prefix = reverse('blog:index')
+        prefix = prefix[:-1] if prefix.endswith('/') else prefix
+        if prefix and (path == prefix or path.startswith(prefix + '/') or path.startswith(prefix + '?')):
+            path_without_prefix = path[len(prefix):] or '/'
+            break
+
+    if language_code == default_language:
+        if path_without_prefix.startswith('?'):
+            return '/' + path_without_prefix
+        return path_without_prefix or '/'
+    if path_without_prefix == '/':
+        return target
+    if path_without_prefix.startswith('?'):
+        return target.rstrip('/') + '/' + path_without_prefix
+    return target_prefix + path_without_prefix
 
 
 @register.simple_tag

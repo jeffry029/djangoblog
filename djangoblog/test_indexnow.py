@@ -2,6 +2,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+import requests
+
 from django.http import Http404
 from django.test import Client, RequestFactory, SimpleTestCase, override_settings
 
@@ -67,3 +69,20 @@ class IndexNowNotifyTest(SimpleTestCase):
             headers={'Content-Type': 'application/json; charset=utf-8'},
             timeout=5,
         )
+
+    @override_settings(
+        DEBUG=False,
+        COLLECTOR_LOG_TRACEBACKS=False,
+        INDEXNOW_KEY='abc12345',
+        INDEXNOW_HOST='www.example.org',
+        INDEXNOW_ENDPOINT='https://api.indexnow.org/indexnow',
+    )
+    @patch('djangoblog.indexnow.logger')
+    @patch('djangoblog.indexnow.requests.post')
+    def test_notify_indexnow_failure_logs_without_traceback_by_default(self, post, logger_mock):
+        post.side_effect = requests.Timeout('timeout')
+
+        ok = notify_indexnow_urls(['https://www.example.org/url1'])
+
+        self.assertFalse(ok)
+        self.assertFalse(logger_mock.warning.call_args.kwargs['exc_info'])

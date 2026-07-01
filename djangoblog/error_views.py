@@ -33,14 +33,26 @@ def render_error_page(request, status_code, message, exception=None):
             return render_error_page(request, 404, "Page not found", exception)
     """
     if exception:
-        logger.error(
-            f'HTTP {status_code} Error: {exception}',
-            exc_info=True,
-            extra={
-                'request': request,
-                'status_code': status_code
-            }
-        )
+        if 400 <= status_code < 500:
+            logger.debug(
+                'HTTP %s for %s: %s',
+                status_code,
+                request.get_full_path(),
+                type(exception).__name__,
+                extra={
+                    'request': request,
+                    'status_code': status_code,
+                },
+            )
+        else:
+            logger.error(
+                f'HTTP {status_code} Error: {exception}',
+                exc_info=True,
+                extra={
+                    'request': request,
+                    'status_code': status_code
+                }
+            )
 
     return render(
         request,

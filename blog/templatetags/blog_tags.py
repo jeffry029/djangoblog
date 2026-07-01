@@ -254,7 +254,7 @@ def get_markdown_toc(content):
 @register.simple_tag
 def current_nav_item(request):
     """Determine the active navigation item based on the current URL path."""
-    path = request.path
+    path = getattr(request, 'path', '') or ''
     if path == '/' or path.startswith('/page/'):
         return 'index'
     elif path.startswith('/news'):

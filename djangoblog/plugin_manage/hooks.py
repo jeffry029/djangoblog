@@ -1,5 +1,7 @@
 import logging
 
+from django.conf import settings
+
 logger = logging.getLogger(__name__)
 
 _hooks = {}
@@ -26,7 +28,13 @@ def run_action(hook_name: str, *args, **kwargs):
             try:
                 callback(*args, **kwargs)
             except Exception as e:
-                logger.error(f"Error running action hook '{hook_name}' callback '{callback.__name__}': {e}", exc_info=True)
+                logger.error(
+                    "Error running action hook '%s' callback '%s': %s",
+                    hook_name,
+                    callback.__name__,
+                    e,
+                    exc_info=should_log_hook_tracebacks(),
+                )
 
 
 def apply_filters(hook_name: str, value, *args, **kwargs):
@@ -40,5 +48,18 @@ def apply_filters(hook_name: str, value, *args, **kwargs):
             try:
                 value = callback(value, *args, **kwargs)
             except Exception as e:
-                logger.error(f"Error applying filter hook '{hook_name}' callback '{callback.__name__}': {e}", exc_info=True)
+                logger.error(
+                    "Error applying filter hook '%s' callback '%s': %s",
+                    hook_name,
+                    callback.__name__,
+                    e,
+                    exc_info=should_log_hook_tracebacks(),
+                )
     return value
+
+
+def should_log_hook_tracebacks():
+    return bool(
+        getattr(settings, 'DEBUG', False)
+        or getattr(settings, 'PLUGIN_HOOK_LOG_TRACEBACKS', False)
+    )

@@ -2,6 +2,7 @@ import hashlib
 import ipaddress
 import logging
 
+from django.conf import settings
 from django.db import IntegrityError
 from django.db.models import F
 from django.utils import timezone
@@ -132,6 +133,10 @@ def record_public_visit(request):
             last_seen=now,
         )
         return True
-    except Exception:
-        logger.exception('Failed to record public traffic')
+    except Exception as error:
+        logger.warning(
+            'Failed to record public traffic: %s',
+            error,
+            exc_info=getattr(settings, 'DEBUG', False),
+        )
         return False

@@ -13,6 +13,7 @@ from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
 from django.utils import timezone
@@ -24,6 +25,11 @@ from djangoblog.utils import cache
 
 logger = logging.getLogger(__name__)
 AIHOT_URL = 'https://aihot.virxact.com/'
+DEFAULT_COLLECTOR_PROXY_URL = 'http://127.0.0.1:7890'
+
+
+class FetchUrlError(Exception):
+    """Raised when fetching a collector URL fails after configured retries."""
 
 
 @dataclass(frozen=True)
@@ -132,9 +138,65 @@ def fetch_url(url, timeout=20):
     headers = {
         'User-Agent': 'Mozilla/5.0 (compatible; BlogCollector/1.0; +https://github.com/jeffryqueenie-coder/djangoblog)'
     }
-    response = requests.get(url, headers=headers, timeout=timeout)
+    try:
+        return request_url(url, headers=headers, timeout=timeout)
+    except requests.RequestException as direct_error:
+        proxy_url = get_collector_proxy_url()
+        if not proxy_url:
+            raise FetchUrlError(
+                f'direct failed ({summarize_request_error(direct_error)})'
+            ) from None
+
+        try:
+            return request_url(
+                url,
+                headers=headers,
+                timeout=timeout,
+                proxies=build_proxy_config(proxy_url),
+            )
+        except requests.RequestException as proxy_error:
+            raise FetchUrlError(
+                'direct failed '
+                f'({summarize_request_error(direct_error)}); '
+                f'proxy {proxy_url} failed ({summarize_request_error(proxy_error)})'
+            ) from None
+
+
+def request_url(url, headers, timeout, proxies=None):
+    with requests.Session() as session:
+        session.trust_env = False
+        response = session.get(url, headers=headers, timeout=timeout, proxies=proxies)
     response.raise_for_status()
     return response.text
+
+
+def get_collector_proxy_url():
+    return os.environ.get('COLLECTOR_PROXY_URL', DEFAULT_COLLECTOR_PROXY_URL).strip()
+
+
+def build_proxy_config(proxy_url):
+    return {
+        'http': proxy_url,
+        'https': proxy_url,
+    }
+
+
+def summarize_request_error(error):
+    if isinstance(error, requests.HTTPError) and error.response is not None:
+        response = error.response
+        return f'{type(error).__name__}: HTTP {response.status_code} {response.reason}'
+    return f'{type(error).__name__}: {error}'
+
+
+def summarize_exception(error):
+    return f'{type(error).__name__}: {error}'
+
+
+def should_log_collector_tracebacks():
+    return bool(
+        getattr(settings, 'DEBUG', False)
+        or getattr(settings, 'COLLECTOR_LOG_TRACEBACKS', False)
+    )
 
 
 def parse_aihot_items(html, base_url=AIHOT_URL):
@@ -192,10 +254,16 @@ def normalize_news_tags(tags):
 
 
 def collect_aihot_news(limit=30, hours=None):
-    html = fetch_url(AIHOT_URL)
+    result = CollectorResult()
+    try:
+        html = fetch_url(AIHOT_URL)
+    except FetchUrlError as error:
+        logger.error('Failed to fetch AI HOT news: %s', error)
+        result.failed += 1
+        return result
+
     items = parse_aihot_items(html)[:limit]
     cutoff = timezone.now() - timezone.timedelta(hours=hours) if hours else None
-    result = CollectorResult()
 
     for item in items:
         if cutoff and item.get('published_at') and item['published_at'] < cutoff:
@@ -211,8 +279,13 @@ def collect_aihot_news(limit=30, hours=None):
                 result.created += 1
             else:
                 result.skipped += 1
-        except Exception:
-            logger.exception('Failed to store AI HOT news: %s', item.get('source_url'))
+        except Exception as error:
+            logger.error(
+                'Failed to store AI HOT news %s: %s',
+                item.get('source_url'),
+                summarize_exception(error),
+                exc_info=should_log_collector_tracebacks(),
+            )
             result.failed += 1
 
     cache.clear()
@@ -258,9 +331,16 @@ def collect_tech_articles(limit=5, feeds=None, hours=None):
 
     for feed in feed_configs:
         try:
-            entries = parse_feed_entries(fetch_url(feed.url), feed.url)
-        except Exception:
-            logger.exception('Failed to fetch or parse feed: %s', feed.url)
+            xml_text = fetch_url(feed.url)
+        except FetchUrlError as error:
+            logger.error('Failed to fetch feed %s: %s', feed.url, error)
+            result.failed += 1
+            continue
+
+        try:
+            entries = parse_feed_entries(xml_text, feed.url)
+        except Exception as error:
+            logger.error('Failed to parse feed %s: %s', feed.url, error)
             result.failed += 1
             continue
 
@@ -297,8 +377,13 @@ def collect_tech_articles(limit=5, feeds=None, hours=None):
             result.created += 1
         except IntegrityError:
             result.skipped += 1
-        except Exception:
-            logger.exception('Failed to publish rewritten article: %s', entry['url'])
+        except Exception as error:
+            logger.error(
+                'Failed to publish rewritten article %s: %s',
+                entry['url'],
+                summarize_exception(error),
+                exc_info=should_log_collector_tracebacks(),
+            )
             result.failed += 1
 
     cache.clear()
@@ -351,8 +436,13 @@ def rewrite_article(entry):
                 getattr(response.usage, 'total_tokens', None),
             )
         return parse_rewritten_article(response.choices[0].message.content.strip())
-    except Exception:
-        logger.exception('Failed to rewrite article with LLM: %s', entry.get('url'))
+    except Exception as error:
+        logger.error(
+            'Failed to rewrite article with LLM %s: %s',
+            entry.get('url'),
+            summarize_exception(error),
+            exc_info=should_log_collector_tracebacks(),
+        )
         return {}
 
 

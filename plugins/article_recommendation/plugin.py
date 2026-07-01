@@ -187,10 +187,10 @@ class ArticleRecommendationPlugin(BasePlugin):
             else:
                 logger.warning(f"过滤掉空标题文章: ID={rec.id}, 标题='{rec.title}'")
         
-        # 调试：记录推荐结果
-        logger.info(f"原始推荐数量: {len(recommendations)}, 有效推荐数量: {len(valid_recommendations)}")
+        # 调试：记录推荐结果。生产环境默认不写入 INFO 日志，避免详情页访问刷日志。
+        logger.debug(f"原始推荐数量: {len(recommendations)}, 有效推荐数量: {len(valid_recommendations)}")
         for i, rec in enumerate(valid_recommendations):
-            logger.info(f"推荐 {i+1}: ID={rec.id}, 标题='{rec.title}', 长度={len(rec.title)}")
+            logger.debug(f"推荐 {i+1}: ID={rec.id}, 标题='{rec.title}', 长度={len(rec.title)}")
         
         return valid_recommendations[:count]
     

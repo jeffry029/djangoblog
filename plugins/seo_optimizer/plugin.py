@@ -185,7 +185,11 @@ class SeoOptimizerPlugin(BasePlugin):
         if not request:
             return metas
 
-        view_name = request.resolver_match.view_name
+        resolver_match = getattr(request, 'resolver_match', None)
+        if not resolver_match:
+            return metas
+
+        view_name = resolver_match.view_name
         blog_setting = get_blog_setting()
         
         seo_data = None

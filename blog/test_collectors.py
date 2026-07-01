@@ -3,13 +3,16 @@ from datetime import datetime, timedelta, timezone as datetime_timezone
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
-from django.test import SimpleTestCase
+import requests
+from django.test import SimpleTestCase, override_settings
 from django.utils import timezone
 
 from blog.services.collectors import (
     DEFAULT_TECH_FEEDS,
+    FetchUrlError,
     determine_article_taxonomy,
     entry_published_at,
+    fetch_url,
     is_before_cutoff,
     get_env_int,
     get_optional_env_int,
@@ -17,8 +20,50 @@ from blog.services.collectors import (
     parse_feed_entries,
     parse_feed_configs,
     parse_feed_list,
+    should_log_collector_tracebacks,
     sort_feed_entries,
 )
+
+
+class FetchUrlTest(SimpleTestCase):
+    @patch.dict(os.environ, {'COLLECTOR_PROXY_URL': 'http://127.0.0.1:7890'}, clear=False)
+    @patch('blog.services.collectors.request_url')
+    def test_fetch_url_retries_with_proxy_after_direct_failure(self, request_url_mock):
+        request_url_mock.side_effect = [
+            requests.ReadTimeout('direct timeout'),
+            '<feed />',
+        ]
+
+        result = fetch_url('https://go.dev/blog/feed.atom')
+
+        self.assertEqual(result, '<feed />')
+        self.assertIsNone(request_url_mock.call_args_list[0].kwargs.get('proxies'))
+        self.assertEqual(
+            request_url_mock.call_args_list[1].kwargs['proxies'],
+            {
+                'http': 'http://127.0.0.1:7890',
+                'https': 'http://127.0.0.1:7890',
+            },
+        )
+
+    @patch.dict(os.environ, {'COLLECTOR_PROXY_URL': ''}, clear=False)
+    @patch('blog.services.collectors.request_url')
+    def test_fetch_url_allows_proxy_fallback_to_be_disabled(self, request_url_mock):
+        request_url_mock.side_effect = requests.ReadTimeout('direct timeout')
+
+        with self.assertRaises(FetchUrlError) as context:
+            fetch_url('https://go.dev/blog/feed.atom')
+
+        self.assertIn('direct failed', str(context.exception))
+        self.assertEqual(request_url_mock.call_count, 1)
+
+    @override_settings(DEBUG=False, COLLECTOR_LOG_TRACEBACKS=False)
+    def test_collector_tracebacks_are_disabled_by_default(self):
+        self.assertFalse(should_log_collector_tracebacks())
+
+    @override_settings(DEBUG=False, COLLECTOR_LOG_TRACEBACKS=True)
+    def test_collector_tracebacks_can_be_enabled(self):
+        self.assertTrue(should_log_collector_tracebacks())
 
 
 class FeedCollectorParsingTest(SimpleTestCase):
@@ -185,7 +230,7 @@ class FeedCollectorPublishingTest(SimpleTestCase):
     ):
         from blog.services.collectors import publish_rewritten_article
 
-        fake_category = SimpleNamespace(name='文章')
+        fake_category = SimpleNamespace(name='文章', name_en='Articles')
         fake_author = SimpleNamespace(username='collector-admin')
         fake_article = Mock()
         fake_article.tags = Mock()
@@ -230,7 +275,7 @@ class FeedCollectorPublishingTest(SimpleTestCase):
         fixed_now = datetime(2026, 5, 14, 21, 30, 0)
         timezone_now_mock.return_value = fixed_now
         get_default_author_mock.return_value = SimpleNamespace(username='collector-admin')
-        category_get_or_create_mock.return_value = (SimpleNamespace(name='文章'), True)
+        category_get_or_create_mock.return_value = (SimpleNamespace(name='文章', name_en='Articles'), True)
         article_create_mock.return_value = Mock(tags=Mock())
         tag_get_or_create_mock.side_effect = lambda name: (SimpleNamespace(name=name), True)
 

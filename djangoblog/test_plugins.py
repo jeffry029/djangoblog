@@ -5,7 +5,7 @@
 import os
 from unittest.mock import Mock, patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import translation
 
 from djangoblog.plugin_manage.base_plugin import BasePlugin
@@ -88,6 +88,33 @@ class PluginHooksTest(TestCase, PluginTestMixin):
         result = hooks.apply_filters(ARTICLE_CONTENT_HOOK_NAME, 'test')
         # 错误钩子不会修改值，但正常钩子会
         self.assertIn('success', result)
+
+    @override_settings(DEBUG=False, PLUGIN_HOOK_LOG_TRACEBACKS=False)
+    @patch('djangoblog.plugin_manage.hooks.logger')
+    def test_hook_errors_do_not_log_tracebacks_by_default(self, mock_logger):
+        """生产默认只记录插件 hook 错误摘要，避免模板访问刷 traceback。"""
+        def error_hook(value):
+            raise Exception("Hook error")
+
+        hooks.register(ARTICLE_CONTENT_HOOK_NAME, error_hook)
+
+        result = hooks.apply_filters(ARTICLE_CONTENT_HOOK_NAME, 'test')
+
+        self.assertEqual(result, 'test')
+        self.assertFalse(mock_logger.error.call_args.kwargs['exc_info'])
+
+    @override_settings(DEBUG=False, PLUGIN_HOOK_LOG_TRACEBACKS=True)
+    @patch('djangoblog.plugin_manage.hooks.logger')
+    def test_hook_tracebacks_can_be_enabled(self, mock_logger):
+        """排查插件问题时可通过配置重新打开 traceback。"""
+        def error_hook(value):
+            raise Exception("Hook error")
+
+        hooks.register(ARTICLE_CONTENT_HOOK_NAME, error_hook)
+
+        hooks.apply_filters(ARTICLE_CONTENT_HOOK_NAME, 'test')
+
+        self.assertTrue(mock_logger.error.call_args.kwargs['exc_info'])
 
 
 class BasePluginTest(BaseTestCase):
@@ -237,6 +264,18 @@ class SEOOptimizerPluginTest(BaseTestCase, PluginTestMixin):
         self.assertContains(response, 'English SEO Tag')
         self.assertContains(response, 'English Plugin Site')
         self.assertNotContains(response, f'"headline": "{self.article.title}"')
+
+    def test_seo_optimizer_skips_unresolved_requests(self):
+        """404 等未解析路由不应触发 SEO 插件异常。"""
+        from plugins.seo_optimizer.plugin import SeoOptimizerPlugin
+
+        plugin = SeoOptimizerPlugin()
+        request = Mock(resolver_match=None)
+
+        self.assertEqual(
+            plugin.dispatch_seo_generation('', {'request': request}),
+            '',
+        )
 
 
 class ArticleCopyrightPluginTest(BaseTestCase, PluginTestMixin):

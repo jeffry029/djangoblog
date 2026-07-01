@@ -326,6 +326,7 @@ INDEXNOW_HOST = os.environ.get('INDEXNOW_HOST') or ''
 INDEXNOW_KEY_LOCATION = os.environ.get('INDEXNOW_KEY_LOCATION') or ''
 INDEXNOW_ENDPOINT = os.environ.get('INDEXNOW_ENDPOINT') or 'https://api.indexnow.org/indexnow'
 INDEXNOW_REQUEST_TIMEOUT = int(os.environ.get('INDEXNOW_REQUEST_TIMEOUT') or 10)
+COLLECTOR_LOG_TRACEBACKS = env_to_enabled('COLLECTOR_LOG_TRACEBACKS', False)
 
 # Email:
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -480,6 +481,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Plugin System
 PLUGINS_DIR = BASE_DIR / 'plugins'
+PLUGIN_HOOK_LOG_TRACEBACKS = env_to_enabled('PLUGIN_HOOK_LOG_TRACEBACKS', False)
 ACTIVE_PLUGINS = [
     'article_copyright',
     'reading_time',

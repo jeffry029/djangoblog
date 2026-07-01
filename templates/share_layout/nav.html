@@ -23,10 +23,9 @@
             <nav class="hidden items-center gap-6 lg:flex"
                  aria-label="{% trans 'Primary' %}">
                 {% current_nav_item request as nav_active %}
-                {% with current_url=request.resolver_match.url_name %}
                 <a href="{% url 'blog:index' %}"
-                   class="editorial-nav-link {% if current_url == 'index' or current_url == 'index_page' %}is-active{% endif %}"
-                   {% if current_url == 'index' or current_url == 'index_page' %}aria-current="page"{% endif %}>
+                   class="editorial-nav-link {% if nav_active == 'index' %}is-active{% endif %}"
+                   {% if nav_active == 'index' %}aria-current="page"{% endif %}>
                     {% trans 'Tech Briefs' %}
                 </a>
 
@@ -76,8 +75,8 @@
                 {% endfor %}
 
                 <a href="{% url 'blog:news' %}"
-                   class="editorial-nav-link {% if current_url == 'news' %}is-active{% endif %}"
-                   {% if current_url == 'news' %}aria-current="page"{% endif %}>
+                   class="editorial-nav-link {% if nav_active == 'news' %}is-active{% endif %}"
+                   {% if nav_active == 'news' %}aria-current="page"{% endif %}>
                     {% trans 'AI News' %}
                 </a>
                 {% for page in nav_pages %}
@@ -87,7 +86,6 @@
                         {{ page.get_title }}
                     </a>
                 {% endfor %}
-                {% endwith %}
             </nav>
         </div>
 

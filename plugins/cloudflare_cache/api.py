@@ -85,11 +85,11 @@ class CloudflareAPI:
             return {'success': False, 'errors': [{'message': 'Request timeout'}]}
 
         except requests.RequestException as e:
-            logger.error(f"[CF API] Request failed: {e}", exc_info=True)
+            logger.error(f"[CF API] Request failed: {e}")
             return {'success': False, 'errors': [{'message': str(e)}]}
 
         except Exception as e:
-            logger.error(f"[CF API] Unexpected error: {e}", exc_info=True)
+            logger.error(f"[CF API] Unexpected error: {e}")
             return {'success': False, 'errors': [{'message': f'Unexpected error: {e}'}]}
 
     def purge_all(self) -> Dict:
@@ -126,7 +126,7 @@ class CloudflareAPI:
             return result
 
         except requests.RequestException as e:
-            logger.error(f"[CF API] Request failed: {e}", exc_info=True)
+            logger.error(f"[CF API] Request failed: {e}")
             return {'success': False, 'errors': [{'message': str(e)}]}
 
     def purge_by_tags(self, tags: List[str]) -> Dict:
@@ -166,7 +166,7 @@ class CloudflareAPI:
             return result
 
         except requests.RequestException as e:
-            logger.error(f"[CF API] Request failed: {e}", exc_info=True)
+            logger.error(f"[CF API] Request failed: {e}")
             return {'success': False, 'errors': [{'message': str(e)}]}
 
     def validate_credentials(self) -> bool:

@@ -3,11 +3,12 @@ Blog Views 测试
 测试视图层的错误处理、权限验证和边界条件
 """
 from django.core.cache import cache
-from django.test import override_settings
+from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import translation
 
 from blog.models import Article, Category
+from blog.views import IndexView
 from djangoblog.test_base import BaseTestCase, ViewTestMixin
 
 
@@ -174,6 +175,15 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         url = reverse('blog:index')
         response = self.client.get(url, {'page': 2})
         self.assertEqual(response.status_code, 200)
+
+    def test_article_list_view_cache_key_uses_valid_page_number(self):
+        """列表缓存 key 获取不应访问不存在的 request.get。"""
+        request = RequestFactory().get('/', {'page': '2'})
+        view = IndexView()
+        view.request = request
+        view.kwargs = {}
+
+        self.assertEqual(view.get_view_cache_key(), '2')
 
     def test_category_view(self):
         """测试分类页"""

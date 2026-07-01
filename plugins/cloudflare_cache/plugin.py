@@ -77,7 +77,7 @@ class CloudflareCachePlugin(BasePlugin):
         # 验证配置
         if not self._validate_config():
             self.CONFIG['enabled'] = False
-            logger.warning("[CF Plugin] Plugin disabled due to invalid configuration")
+            logger.info("[CF Plugin] Plugin disabled due to missing or invalid configuration")
             return
 
         logger.info("[CF Plugin] Configuration validated successfully")
@@ -101,13 +101,11 @@ class CloudflareCachePlugin(BasePlugin):
         api_token = self.CONFIG.get('api_token', '').strip()
 
         if not zone_id:
-            logger.error("[CF Plugin] CLOUDFLARE_ZONE_ID not configured")
-            logger.info("[CF Plugin] Please set environment variable: CLOUDFLARE_ZONE_ID")
+            logger.info("[CF Plugin] CLOUDFLARE_ZONE_ID not configured; cache purge disabled")
             return False
 
         if not api_token:
-            logger.error("[CF Plugin] CLOUDFLARE_API_TOKEN not configured")
-            logger.info("[CF Plugin] Please set environment variable: CLOUDFLARE_API_TOKEN")
+            logger.info("[CF Plugin] CLOUDFLARE_API_TOKEN not configured; cache purge disabled")
             return False
 
         # 基本格式验证
@@ -171,7 +169,10 @@ class CloudflareCachePlugin(BasePlugin):
                     logger.error(f"[CF Plugin] ✗ Failed to purge cache on startup: {errors}")
 
             except Exception as e:
-                logger.error(f"[CF Plugin] Exception during startup cache purge: {e}", exc_info=True)
+                logger.error(
+                    f"[CF Plugin] Exception during startup cache purge: {e}",
+                    exc_info=settings.DEBUG,
+                )
 
         # 在后台线程中执行，不阻塞应用启动
         thread = threading.Thread(target=_do_purge, daemon=True, name="CloudflareCachePurgeOnStartup")
@@ -218,7 +219,7 @@ class CloudflareCachePlugin(BasePlugin):
             self.CONFIG['enabled'] = False
 
         except Exception as e:
-            logger.error(f"[CF Plugin] Error registering hooks: {e}", exc_info=True)
+            logger.error(f"[CF Plugin] Error registering hooks: {e}", exc_info=settings.DEBUG)
             self.CONFIG['enabled'] = False
 
     # ==================== 管理命令接口 ====================

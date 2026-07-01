@@ -59,8 +59,13 @@ def notify_indexnow_urls(urls):
         response.raise_for_status()
         logger.info('IndexNow notified %s urls: %s', len(payload['urlList']), response.status_code)
         return True
-    except Exception:
-        logger.exception('Failed to notify IndexNow')
+    except Exception as error:
+        logger.warning(
+            'Failed to notify IndexNow: %s: %s',
+            type(error).__name__,
+            error,
+            exc_info=getattr(settings, 'DEBUG', False) or getattr(settings, 'COLLECTOR_LOG_TRACEBACKS', False),
+        )
         return False
 
 

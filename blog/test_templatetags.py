@@ -83,6 +83,9 @@ class BlogTagsTest(BaseTestCase):
 
         self.assertEqual(result, '/?q=ai')
 
+    def test_current_nav_item_allows_missing_request(self):
+        self.assertEqual(current_nav_item(None), '')
+
     def test_highlight_search_term(self):
         """测试搜索关键词高亮"""
         text = '这是一段包含关键词的文本'

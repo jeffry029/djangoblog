@@ -136,7 +136,7 @@ class CloudflareCacheHandler:
             return urls
 
         except Exception as e:
-            logger.error(f"[CF Handler] Error collecting article URLs: {e}", exc_info=True)
+            logger.error(f"[CF Handler] Error collecting article URLs: {e}")
             return []
 
     def _collect_comment_urls(self, comment, is_new: bool) -> List[str]:
@@ -172,7 +172,7 @@ class CloudflareCacheHandler:
             return urls
 
         except Exception as e:
-            logger.error(f"[CF Handler] Error collecting comment URLs: {e}", exc_info=True)
+            logger.error(f"[CF Handler] Error collecting comment URLs: {e}")
             return []
 
     def _purge_cache_batch(self, urls: List[str]):
@@ -209,7 +209,7 @@ class CloudflareCacheHandler:
 
         except Exception as e:
             # 缓存清除失败不应影响主流程
-            logger.error(f"[CF Handler] Exception during cache purge: {e}", exc_info=True)
+            logger.error(f"[CF Handler] Exception during cache purge: {e}")
             logger.warning("[CF Handler] Cache purge failed, but main operation completed successfully")
 
     def purge_all(self):
@@ -233,5 +233,5 @@ class CloudflareCacheHandler:
                 return False
 
         except Exception as e:
-            logger.error(f"[CF Handler] Exception during purge all: {e}", exc_info=True)
+            logger.error(f"[CF Handler] Exception during purge all: {e}")
             return False

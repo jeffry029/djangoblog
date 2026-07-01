@@ -55,7 +55,7 @@ class ArticleListView(CachedListViewMixin, PageNumberMixin, ListView):
     link_type = LinkShowType.L
 
     def get_view_cache_key(self):
-        return self.request.get['pages']
+        return str(self.page_number)
 
     def get_context_data(self, **kwargs):
         kwargs['linktype'] = self.link_type

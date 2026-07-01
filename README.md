@@ -154,6 +154,9 @@ BLOG_LLM_MODEL=glm-5.1
 TECH_ARTICLE_LIMIT=5
 AIHOT_NEWS_LIMIT=30
 COLLECTOR_INTERVAL=1800
+COLLECTOR_PROXY_URL=http://127.0.0.1:7890
+COLLECTOR_LOG_TRACEBACKS=False
+PLUGIN_HOOK_LOG_TRACEBACKS=False
 ```
 
 关键配置说明：
@@ -164,6 +167,9 @@ COLLECTOR_INTERVAL=1800
 - `TECH_ARTICLE_LIMIT`：每轮最多发布多少篇技术文章
 - `AIHOT_NEWS_LIMIT`：每轮最多抓取多少条 AI 快讯
 - `COLLECTOR_INTERVAL`：定时任务循环间隔，单位秒
+- `COLLECTOR_PROXY_URL`：RSS / AI 快讯直连失败后的代理 fallback，设为空可禁用
+- `COLLECTOR_LOG_TRACEBACKS`：生产默认不输出采集/LLM 完整 traceback；排查采集问题时可临时设为 `True`
+- `PLUGIN_HOOK_LOG_TRACEBACKS`：生产默认不输出插件 hook 完整 traceback；排查插件问题时可临时设为 `True`
 
 ## 本地运行
 

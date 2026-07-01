@@ -168,6 +168,19 @@ class FeedCollectorConfigTest(SimpleTestCase):
         self.assertIn('https://nextjs.org/feed.xml', DEFAULT_TECH_FEEDS)
         self.assertIn('https://nodejs.org/en/feed/blog.xml', DEFAULT_TECH_FEEDS)
 
+    def test_default_feeds_do_not_include_known_dead_or_duplicate_urls(self):
+        stale_urls = {
+            'https://blog.golang.org/feed.atom',
+            'https://blog.vuejs.org/feed.xml',
+            'https://www.docker.com/blog/feed/',
+            'https://cloud.google.com/blog/rss',
+            'https://planet.mysql.com/rss20.xml',
+            'https://pytorch.org/blog/feed.xml',
+            'https://tech.meituan.com/feed/',
+        }
+
+        self.assertFalse(stale_urls.intersection(DEFAULT_TECH_FEEDS))
+
     @patch.dict(os.environ, {'TECH_BLOG_FEEDS': ' https://a.test/feed.xml,https://b.test/rss '}, clear=False)
     def test_parse_feed_list_uses_env_feeds(self):
         self.assertEqual(parse_feed_list(), ['https://a.test/feed.xml', 'https://b.test/rss'])

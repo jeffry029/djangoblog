@@ -70,14 +70,9 @@
         })();
     </script>
 
-    <!-- 资源提示优化 -->
-    <!-- 仅保留真正需要的 dns-prefetch，MathJax 由智能加载器按需加载 -->
-    <link rel="dns-prefetch" href="//cdn.mathjax.org"/>
-
     <!-- RSS和图标 -->
     <link rel="alternate" type="application/rss+xml" title="{{ SITE_NAME }} &raquo; Feed" href="/feed"/>
     <link rel="icon" href="{% static 'blog/favicon.svg' %}" type="image/svg+xml"/>
-    <link rel="shortcut icon" href="{% static 'blog/favicon.svg' %}" type="image/svg+xml"/>
     <link rel="apple-touch-icon" href="{% static 'blog/favicon.svg' %}"/>
 
     <!-- 关键CSS：防止深色模式闪烁 + 首屏优化（bootstrap 样式，Tailwind 加载前生效，颜色值与 design system 一致） -->
@@ -107,7 +102,7 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-family: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
             line-height: 1.6;
         }
 
@@ -194,15 +189,13 @@
     {% plugin_compressed_js %}
 {% endcompress %}
 
-<!-- MathJax智能加载器 - 延迟加载,不阻塞渲染 -->
-<script src="{% static 'blog/js/mathjax-loader.js' %}" defer></script>
+{% block page_scripts %}{% endblock %}
 
 {% block footer %}
 {% endblock %}
 
 <!-- 回到顶部按钮 - Alpine.js组件 -->
 <button x-data="backToTop()"
-     x-init="init()"
      @click="scrollToTop()"
      id="rocket"
      x-show="isVisible"
@@ -218,7 +211,6 @@
 
 <!-- 图片灯箱 - Alpine.js组件 -->
 <div x-data="imageLightbox()"
-     x-init="init()"
      @keydown.escape.window="closeLightbox()"
      x-cloak
      role="dialog"

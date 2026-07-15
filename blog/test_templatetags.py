@@ -55,6 +55,28 @@ class BlogTagsTest(BaseTestCase):
         self.assertFalse(page.has_next())
         self.assertTrue(page.has_previous())
 
+    def test_load_news_pagination_info_uses_news_query_urls(self):
+        paginator = Paginator(range(60), 10)
+
+        info = load_pagination_info(paginator.page(2), '新闻列表', '')
+
+        self.assertEqual(info['previous_url'], '/news/')
+        self.assertEqual(info['next_url'], '/news/?page=3')
+        self.assertEqual(info['page_range'][0]['url'], '/news/')
+        self.assertEqual(info['page_range'][1]['url'], '/news/?page=2')
+
+    def test_pagination_limits_mobile_page_buttons(self):
+        paginator = Paginator(range(200), 10)
+
+        info = load_pagination_info(paginator.page(10), '新闻列表', '')
+        visible_numbers = [
+            item['number']
+            for item in info['page_range']
+            if item['type'] == 'page' and item['is_mobile_visible']
+        ]
+
+        self.assertEqual(visible_numbers, [1, 9, 10, 11, 20])
+
     def test_localized_next_url_removes_english_prefix_for_chinese(self):
         request = self.factory.get('/en/news/', {'page': '2'})
 
@@ -85,6 +107,10 @@ class BlogTagsTest(BaseTestCase):
 
     def test_current_nav_item_allows_missing_request(self):
         self.assertEqual(current_nav_item(None), '')
+
+    def test_current_nav_item_handles_language_prefix(self):
+        self.assertEqual(current_nav_item(self.factory.get('/en/')), 'index')
+        self.assertEqual(current_nav_item(self.factory.get('/en/news/')), 'news')
 
     def test_highlight_search_term(self):
         """测试搜索关键词高亮"""

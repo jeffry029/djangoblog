@@ -255,6 +255,11 @@ def get_markdown_toc(content):
 def current_nav_item(request):
     """Determine the active navigation item based on the current URL path."""
     path = getattr(request, 'path', '') or ''
+    path_parts = path.lstrip('/').split('/', 1)
+    language_codes = {code.lower() for code, _name in settings.LANGUAGES}
+    if path_parts[0].lower() in language_codes:
+        path = f'/{path_parts[1]}' if len(path_parts) > 1 else '/'
+
     if path == '/' or path.startswith('/page/'):
         return 'index'
     elif path.startswith('/news'):
@@ -480,6 +485,9 @@ def load_pagination_info(page_obj, page_type, tag_name, pagination_slug=None):
         elif page_type == '分类目录归档':
             return reverse('blog:category_detail_page',
                            kwargs={'page': page_number, 'category_name': _slug})
+        elif page_type == '新闻列表':
+            base_url = reverse('blog:news')
+            return base_url if page_number == 1 else f'{base_url}?page={page_number}'
         return ''
 
     if page_obj.has_next():
@@ -514,6 +522,13 @@ def load_pagination_info(page_obj, page_type, tag_name, pagination_slug=None):
                 'number': num,
                 'url': _build_url(num),
                 'is_current': num == current_page,
+                'is_mobile_visible': num in {
+                    1,
+                    total_pages,
+                    current_page - 1,
+                    current_page,
+                    current_page + 1,
+                },
             })
             last_num = num
 

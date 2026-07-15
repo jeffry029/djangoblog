@@ -1,6 +1,6 @@
 {% load i18n %}
 {% if page_obj.paginator.num_pages > 1 %}
-<nav class="mt-10 flex items-center justify-center gap-2 pt-2" role="navigation" aria-label="{% trans 'Pagination' %}">
+<nav class="mt-10 flex items-center justify-center gap-1 pt-2 sm:gap-2" role="navigation" aria-label="{% trans 'Pagination' %}">
     {% if page_obj.has_previous and previous_url %}
         <a href="{{ previous_url }}" class="editorial-page-button" rel="prev" aria-label="{% trans 'Previous page' %}">
             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -8,7 +8,7 @@
             </svg>
         </a>
     {% else %}
-        <span class="editorial-page-button is-disabled">
+        <span class="editorial-page-button is-disabled" aria-disabled="true">
             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
             </svg>
@@ -17,11 +17,11 @@
 
     {% for item in page_range %}
         {% if item.type == 'ellipsis' %}
-            <span class="inline-flex size-10 items-center justify-center text-sm text-muted-foreground">...</span>
+            <span class="hidden size-9 items-center justify-center text-sm text-muted-foreground sm:inline-flex sm:size-10" aria-hidden="true">...</span>
         {% elif item.is_current %}
             <span class="editorial-page-button is-current" aria-current="page">{{ item.number }}</span>
         {% else %}
-            <a href="{{ item.url }}" class="editorial-page-button">{{ item.number }}</a>
+            <a href="{{ item.url }}" class="editorial-page-button {% if not item.is_mobile_visible %}hidden sm:inline-flex{% endif %}" aria-label="{% blocktrans with page_number=item.number %}Page {{ page_number }}{% endblocktrans %}">{{ item.number }}</a>
         {% endif %}
     {% endfor %}
 
@@ -32,7 +32,7 @@
             </svg>
         </a>
     {% else %}
-        <span class="editorial-page-button is-disabled">
+        <span class="editorial-page-button is-disabled" aria-disabled="true">
             <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>

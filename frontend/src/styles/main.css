@@ -686,7 +686,7 @@ body[data-color-scheme="teal"] {
   }
 
   .editorial-page-button {
-    @apply inline-flex size-10 items-center justify-center rounded-lg border border-border/40 bg-card text-sm font-semibold text-foreground shadow-card transition-colors hover:bg-secondary hover:text-primary-600;
+    @apply inline-flex size-9 items-center justify-center rounded-lg border border-border/40 bg-card text-sm font-semibold text-foreground shadow-card transition-colors hover:bg-secondary hover:text-primary-600 sm:size-10;
   }
 
   .editorial-page-button.is-current {
@@ -695,6 +695,29 @@ body[data-color-scheme="teal"] {
 
   .editorial-page-button.is-disabled {
     @apply cursor-not-allowed text-muted-foreground/40 hover:bg-card hover:text-muted-foreground/40;
+  }
+
+  .editorial-language-switcher {
+    @apply inline-flex h-9 items-center rounded-lg border border-border/60 bg-card p-0.5 shadow-sm;
+  }
+
+  .editorial-language-icon {
+    @apply ml-1.5 mr-1 size-4 shrink-0 text-muted-foreground;
+  }
+
+  .editorial-language-option {
+    @apply inline-flex h-7 min-w-9 items-center justify-center rounded-md border-0 bg-transparent px-2 text-[12px] font-semibold leading-none text-muted-foreground shadow-none transition-colors hover:bg-secondary hover:text-foreground;
+  }
+
+  .editorial-language-option.is-active {
+    color: rgb(var(--primary));
+    background: rgb(var(--primary) / 0.11);
+    box-shadow: inset 0 0 0 1px rgb(var(--primary) / 0.12);
+  }
+
+  [data-theme="dark"] .editorial-language-option.is-active {
+    color: rgb(var(--color-primary-100));
+    background: rgb(var(--primary) / 0.2);
   }
 
   .editorial-list-shell {
@@ -2637,7 +2660,7 @@ body[data-color-scheme="teal"] {
     @apply input;
   }
 
-  button[type="submit"],
+  button[type="submit"]:not(.editorial-language-option),
   input[type="submit"] {
     @apply btn btn-primary;
   }
@@ -3269,24 +3292,15 @@ img[loading="lazy"][src] {
 }
 
 /* ==================== 兼容性 ==================== */
-/* 平滑过渡所有颜色变化 */
-* {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
-
-/* 禁用某些元素的过渡 */
-button,
-input,
-textarea,
-select {
-  transition: none;
-}
-
-button:hover,
-input:focus,
-textarea:focus,
-select:focus {
-  transition: all 0.2s ease;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Bookmark toast notification */

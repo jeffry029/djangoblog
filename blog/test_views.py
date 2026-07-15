@@ -7,7 +7,7 @@ from django.test import RequestFactory, override_settings
 from django.urls import reverse
 from django.utils import translation
 
-from blog.models import Article, Category
+from blog.models import Article, Category, NewsItem
 from blog.views import IndexView
 from djangoblog.test_base import BaseTestCase, ViewTestMixin
 
@@ -146,7 +146,18 @@ class ArticleViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, reverse('set_language'))
         self.assertContains(response, 'name="language"')
         self.assertContains(response, 'formaction="/i18n/setlang/?next=/en/"')
+        self.assertContains(response, 'editorial-language-switcher')
+        self.assertContains(response, 'aria-pressed="true"')
         self.assertNotContains(response, 'onchange="this.form.elements')
+        self.assertNotContains(response, 'x-init="init()"')
+
+    def test_header_only_contains_the_two_primary_tabs(self):
+        response = self.client.get(reverse('blog:index'))
+
+        self.assertContains(response, 'class="editorial-nav-link', count=2)
+        self.assertContains(response, 'class="editorial-mobile-link', count=2)
+        self.assertContains(response, '技术摘要')
+        self.assertContains(response, 'AI 新闻')
 
     @override_settings(SHOW_API_PROMO=True)
     def test_index_view_shows_api_promo(self):
@@ -310,6 +321,20 @@ class NewsViewTest(BaseTestCase, ViewTestMixin):
         self.assertContains(response, '暂无新闻')
         self.assertNotContains(response, 'collect_aihot_news')
         self.assertNotContains(response, 'python manage.py')
+
+    def test_news_view_uses_shared_numbered_pagination(self):
+        for index in range(21):
+            NewsItem.objects.create(
+                title=f'News {index}',
+                source_url=f'https://example.com/news/{index}',
+            )
+
+        response = self.client.get(reverse('blog:news'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'editorial-page-button')
+        self.assertContains(response, 'href="/news/?page=2"')
+        self.assertNotContains(response, '1 / 2')
 
 
 @override_settings(API_PROMO_CONTROL_TOKEN='secret-token')

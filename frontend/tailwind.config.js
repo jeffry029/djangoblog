@@ -65,10 +65,10 @@ export default {
 
       // 字体家族
       fontFamily: {
-        sans: ['Inter', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-        ui: ['Inter', 'Helvetica Neue', 'Helvetica', 'Arial', 'sans-serif'],
-        headline: ['Manrope', 'Inter', 'Helvetica Neue', 'Arial', 'sans-serif'],
-        article: ['Source Serif 4', 'Georgia', 'serif'],
+        sans: ['Avenir Next', 'Segoe UI Variable Text', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+        ui: ['Avenir Next', 'Segoe UI Variable Text', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+        headline: ['Avenir Next', 'Segoe UI Variable Display', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+        article: ['Iowan Old Style', 'Noto Serif CJK SC', 'Songti SC', 'Georgia', 'serif'],
         mono: ['Consolas', 'Monaco', 'Courier New', 'monospace'],
       },
 

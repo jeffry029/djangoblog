@@ -2,6 +2,7 @@
 {% load blog_tags %}
 {% load cache %}
 {% load i18n %}
+{% load static %}
 
 {% block header %}
     {% article_source_url article as source_url %}
@@ -16,6 +17,10 @@
         {% endif %}
         <link rel="alternate" hreflang="x-default" href="{{ alternate_urls.zh_hans }}"/>
     {% endif %}
+{% endblock %}
+
+{% block page_scripts %}
+    <script src="{% static 'blog/js/mathjax-loader.js' %}" defer></script>
 {% endblock %}
 
 {% block content %}

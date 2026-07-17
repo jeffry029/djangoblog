@@ -120,14 +120,14 @@ python scripts/export_mysql_to_sqlite.py --sqlite-path /root/project/djangoblog/
 
 AI 快讯当前抓取：
 
-- `https://aihot.virxact.com/`
+- `https://aihot.virxact.com/feed.xml`
 
 流程更轻量：
 
-1. 抓取页面卡片
-2. 提取标题、摘要、标签、来源链接
-3. 写入 `NewsItem`
-4. 展示到 `AI 快讯` 页签
+1. 拉取 AI HOT 官方精选 RSS
+2. 提取标题、AI 摘要、正文、原文链接和 AI HOT permalink
+3. 清理正文 HTML 后写入 `NewsItem`
+4. 有正文时进入站内详情；旧数据或无正文时继续跳转采集到的外部地址
 
 ## 环境变量
 

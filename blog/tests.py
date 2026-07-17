@@ -1,4 +1,5 @@
 import os
+from unittest.mock import patch
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -12,7 +13,7 @@ from django.utils import timezone
 from accounts.models import BlogUser
 from blog.forms import BlogSearchForm
 from blog.models import Article, Category, Tag, SideBar, Links, NewsItem
-from blog.services.collectors import parse_aihot_items
+from blog.services.collectors import collect_aihot_news, parse_aihot_items
 from blog.templatetags.blog_tags import load_pagination_info, load_articletags, highlight_search_term, highlight_content
 from djangoblog.utils import get_current_site, get_sha256
 from oauth.models import OAuthUser, OAuthConfig
@@ -297,6 +298,7 @@ class NewsFeatureTest(TestCase):
         NewsItem.objects.create(
             title="AI 框架发布新版本",
             summary="新版本改进了推理性能。",
+            content="<p>新版本详细内容。</p>",
             reason="适合关注 AI 服务部署。",
             source_name="AI HOT",
             source_url="https://example.com/news/1",
@@ -320,6 +322,114 @@ class NewsFeatureTest(TestCase):
         self.assertNotContains(response, "热门文章")
         self.assertNotContains(response, "近期文章")
         self.assertNotContains(response, "隐藏新闻")
+        visible_item = NewsItem.objects.get(title="AI 框架发布新版本")
+        self.assertContains(response, f'href="{visible_item.get_absolute_url()}"')
+        self.assertNotContains(
+            response,
+            f'href="{visible_item.get_absolute_url()}" target="_blank"',
+        )
+
+    def test_news_without_content_keeps_collected_external_link(self):
+        item = NewsItem.objects.create(
+            title="Summary only news",
+            summary="Summary only.",
+            content="<p> </p>",
+            source_url="https://aihot.virxact.com/items/summary-only",
+        )
+
+        response = self.client.get(reverse("blog:news"))
+
+        self.assertEqual(item.get_display_url(), item.source_url)
+        self.assertContains(response, f'href="{item.source_url}"')
+        self.assertContains(response, 'target="_blank" rel="noopener nofollow"')
+
+    def test_news_detail_displays_collected_content_and_source_links(self):
+        item = NewsItem.objects.create(
+            title="Agent 运行时发布",
+            summary="一段 AI 摘要。",
+            content='<p>本站内展示的正文。</p><script>alert("bad")</script>',
+            source_name="Example Engineering",
+            source_url="https://aihot.virxact.com/items/agent-runtime",
+            original_url="https://example.com/agent-runtime",
+            tags="AI 产品",
+            is_visible=True,
+        )
+
+        response = self.client.get(item.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Agent 运行时发布")
+        self.assertContains(response, "本站内展示的正文。")
+        self.assertContains(response, item.original_url)
+        self.assertContains(response, item.source_url)
+        self.assertNotContains(response, '<script>alert("bad")</script>')
+
+    def test_legacy_news_source_url_is_treated_as_original_link(self):
+        item = NewsItem.objects.create(
+            title="Legacy news",
+            source_url="https://x.com/example/status/1",
+        )
+
+        self.assertEqual(item.get_original_url(), item.source_url)
+        self.assertEqual(item.get_aihot_url(), '')
+        self.assertEqual(item.get_display_url(), item.source_url)
+
+    def test_hidden_news_detail_returns_404(self):
+        item = NewsItem.objects.create(
+            title="隐藏新闻",
+            source_url="https://aihot.virxact.com/items/hidden",
+            is_visible=False,
+        )
+
+        response = self.client.get(item.get_absolute_url())
+
+        self.assertEqual(response.status_code, 404)
+
+    @patch('blog.services.collectors.fetch_url')
+    def test_collect_aihot_news_stores_feed_content(self, fetch_url_mock):
+        fetch_url_mock.return_value = self.aihot_feed_xml()
+
+        result = collect_aihot_news(limit=1)
+
+        self.assertEqual((result.created, result.skipped, result.failed), (1, 0, 0))
+        item = NewsItem.objects.get(title='Collected news')
+        self.assertEqual(item.original_url, 'https://example.com/collected')
+        self.assertEqual(item.content, '<p>Collected body.</p>')
+
+    @patch('blog.services.collectors.fetch_url')
+    def test_collect_aihot_news_updates_pre_detail_link_without_duplicate(self, fetch_url_mock):
+        legacy = NewsItem.objects.create(
+            title='Old title',
+            source_url='https://example.com/collected',
+            tags='Existing tag',
+        )
+        fetch_url_mock.return_value = self.aihot_feed_xml()
+
+        result = collect_aihot_news(limit=1)
+
+        self.assertEqual((result.created, result.skipped, result.failed), (0, 1, 0))
+        self.assertEqual(NewsItem.objects.count(), 1)
+        legacy.refresh_from_db()
+        self.assertEqual(legacy.source_url, 'https://aihot.virxact.com/items/collected')
+        self.assertEqual(legacy.original_url, 'https://example.com/collected')
+        self.assertEqual(legacy.tags, 'Existing tag')
+
+    @staticmethod
+    def aihot_feed_xml():
+        return """<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+          <channel><item>
+            <title>Collected news</title>
+            <link>https://aihot.virxact.com/items/collected</link>
+            <description><![CDATA[Collected summary.
+
+阅读原文：https://example.com/collected]]></description>
+            <content:encoded><![CDATA[<p>Collected body.</p>]]></content:encoded>
+            <category>AI 模型</category>
+            <pubDate>Fri, 17 Jul 2026 00:40:20 GMT</pubDate>
+            <author>noreply@aihot.virxact.com (Example Source)</author>
+          </item></channel>
+        </rss>"""
 
     def test_parse_aihot_items_extracts_linked_cards(self):
         html = """
@@ -339,7 +449,7 @@ class NewsFeatureTest(TestCase):
 
     def test_title_search_returns_articles_and_news(self):
         user = BlogUser.objects.create_user(username="searcher", email="searcher@example.com")
-        category = Category.objects.create(name="文章")
+        category, _ = Category.objects.get_or_create(name="文章")
         Article.objects.create(
             title="Python 性能调优实践",
             body="content",
@@ -361,6 +471,8 @@ class NewsFeatureTest(TestCase):
         self.assertContains(response, "<mark>Python</mark>", html=False)
         self.assertContains(response, "性能调优实践")
         self.assertContains(response, "3.14 发布")
+        self.assertContains(response, 'href="https://example.com/python-news"')
+        self.assertContains(response, 'target="_blank" rel="noopener nofollow"')
 
 
 class SearchHighlightTest(TestCase):

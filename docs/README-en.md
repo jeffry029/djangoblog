@@ -5,7 +5,7 @@ Developer Radar is a public, read-only developer content site built on top of Dj
 It focuses on two content streams:
 
 - `Technical Summaries`: RSS/Atom tech articles rewritten into Chinese with an LLM
-- `AI News`: headline-style updates collected from `https://aihot.virxact.com/`
+- `AI News`: summaries and available detail content collected from the AI HOT selected RSS feed and displayed on local detail pages
 
 ## What this fork is for
 

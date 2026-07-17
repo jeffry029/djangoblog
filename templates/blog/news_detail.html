@@ -1,0 +1,71 @@
+{% extends 'share_layout/base.html' %}
+{% load blog_tags %}
+{% load i18n %}
+
+{% block header %}
+    <title>{{ seo_title|default:SITE_NAME }}</title>
+    <meta name="description" content="{{ seo_description|default:SITE_DESCRIPTION }}"/>
+    <meta name="keywords" content="{{ seo_keywords|default:SITE_KEYWORDS }}"/>
+    <link rel="canonical" href="{{ request.build_absolute_uri }}"/>
+{% endblock %}
+
+{% block content %}
+    <div class="editorial-shell mx-auto w-full max-w-4xl px-4 pb-20 pt-24 md:px-8">
+        <main class="min-w-0">
+            <article class="editorial-detail-card rounded-lg border border-border/40 bg-card p-6 shadow-card md:p-8">
+                <a href="{% url 'blog:news' %}" class="mb-6 inline-flex items-center gap-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary-600">
+                    <span aria-hidden="true">&larr;</span>
+                    {% trans 'AI News' %}
+                </a>
+
+                <h1 class="m-0 font-headline text-[30px] font-bold leading-tight text-primary-600 md:text-4xl">
+                    {{ news_item.title }}
+                </h1>
+
+                <div class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-muted-foreground">
+                    <span>{{ news_item.source_name|default:news_item.get_source_display }}</span>
+                    {% if news_item.published_at %}
+                        <span>&middot;</span>
+                        <time datetime="{{ news_item.published_at|date:'c' }}">{{ news_item.published_at|date:"Y-m-d H:i" }}</time>
+                    {% endif %}
+                </div>
+
+                {% if news_item.summary %}
+                    <section class="my-8 rounded-lg border border-primary-600/15 bg-secondary/50 p-4">
+                        <p class="m-0 mb-2 text-[12px] font-semibold text-primary-600">{% trans 'AI summary' %}</p>
+                        <p class="m-0 text-sm leading-7 text-foreground">{{ news_item.summary }}</p>
+                    </section>
+                {% endif %}
+
+                <div class="entry-content max-w-none" itemprop="articleBody">
+                    <div class="editorial-article-body article prose prose-slate dark:prose-invert max-w-none">
+                        {% if news_content_html %}
+                            {{ news_content_html }}
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if news_item.tags %}
+                    <div class="mt-8 flex flex-wrap gap-2 border-t border-border/30 pt-6">
+                        {% for tag in news_item.tags|news_tags %}
+                            {% if tag %}<span class="editorial-tag">{{ tag }}</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mt-8 flex flex-wrap items-center gap-3 border-t border-border/30 pt-6 text-[13px] font-semibold">
+                    {% if news_item.get_original_url %}
+                        <a href="{{ news_item.get_original_url }}" target="_blank" rel="noopener nofollow" class="editorial-read-more">
+                            {% trans 'Original link' %}
+                        </a>
+                    {% endif %}
+                    {% if news_item.get_aihot_url %}
+                        <a href="{{ news_item.get_aihot_url }}" target="_blank" rel="noopener nofollow" class="editorial-read-more">
+                            AI HOT
+                        </a>
+                    {% endif %}
+                </div>
+            </article>
+        </main>
+    </div>
+{% endblock %}

@@ -17,6 +17,7 @@ from blog.services.collectors import (
     get_env_int,
     get_optional_env_int,
     normalize_feed_configs,
+    parse_aihot_feed,
     parse_feed_entries,
     parse_feed_configs,
     parse_feed_list,
@@ -67,6 +68,48 @@ class FetchUrlTest(SimpleTestCase):
 
 
 class FeedCollectorParsingTest(SimpleTestCase):
+    def test_parse_aihot_feed_extracts_content_and_source_links(self):
+        xml = """<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+          <channel>
+            <item>
+              <title><![CDATA[Agent runtime released]]></title>
+              <link>https://aihot.virxact.com/items/agent-runtime</link>
+              <description><![CDATA[Runtime details for agent builders.
+
+阅读原文：https://example.com/agent-runtime
+
+via AI HOT · https://aihot.virxact.com/items/agent-runtime]]></description>
+              <content:encoded><![CDATA[
+                <p>Full <strong>release</strong> details.</p>
+                <p><a href="/docs">Read docs</a></p>
+                <script>alert('bad')</script>
+                <p>—— 本文由 AI HOT 聚合整理，完整版与更多 AI 动态见 AI HOT</p>
+              ]]></content:encoded>
+              <category>AI 产品</category>
+              <pubDate>Fri, 17 Jul 2026 00:40:20 GMT</pubDate>
+              <guid isPermaLink="false">agent-runtime</guid>
+              <author>noreply@aihot.virxact.com (Example Engineering)</author>
+            </item>
+          </channel>
+        </rss>
+        """
+
+        entries = parse_aihot_feed(xml)
+
+        self.assertEqual(len(entries), 1)
+        self.assertEqual(entries[0]['title'], 'Agent runtime released')
+        self.assertEqual(entries[0]['summary'], 'Runtime details for agent builders.')
+        self.assertEqual(entries[0]['source_name'], 'Example Engineering')
+        self.assertEqual(entries[0]['source_url'], 'https://aihot.virxact.com/items/agent-runtime')
+        self.assertEqual(entries[0]['original_url'], 'https://example.com/agent-runtime')
+        self.assertEqual(entries[0]['tags'], 'AI 产品')
+        self.assertIn('<strong>release</strong>', entries[0]['content'])
+        self.assertIn('href="https://aihot.virxact.com/docs"', entries[0]['content'])
+        self.assertNotIn('script', entries[0]['content'])
+        self.assertNotIn('本文由 AI HOT', entries[0]['content'])
+        self.assertEqual(entries[0]['published_at'].year, 2026)
+
     def test_parse_aihot_items_ignores_tag_container_text(self):
         from blog.services.collectors import parse_aihot_items
 

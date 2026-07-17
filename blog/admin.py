@@ -141,7 +141,10 @@ class LinksAdmin(admin.ModelAdmin):
 class NewsItemAdmin(admin.ModelAdmin):
     list_display = ('title', 'source', 'source_name', 'published_at', 'fetched_at', 'is_visible')
     list_filter = ('source', 'is_visible', 'published_at')
-    search_fields = ('title', 'summary', 'reason', 'source_name', 'source_url', 'tags')
+    search_fields = (
+        'title', 'summary', 'content', 'reason', 'source_name',
+        'source_url', 'original_url', 'tags',
+    )
     readonly_fields = ('fetched_at',)
 
 

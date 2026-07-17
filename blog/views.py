@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.templatetags.static import static
 from django.utils.dateparse import parse_date
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import ngettext
@@ -23,7 +24,7 @@ from haystack.views import SearchView
 from blog.models import Article, BookmarkStat, BlogSettings, Category, Feedback, LinkShowType, Links, NewsItem, PublicTrafficDailyStat, Tag
 from djangoblog.plugin_manage import hooks
 from djangoblog.plugin_manage.hook_constants import ARTICLE_CONTENT_HOOK_NAME
-from djangoblog.utils import cache, get_blog_setting, get_sha256
+from djangoblog.utils import cache, get_blog_setting, get_sha256, sanitize_html
 from djangoblog.mixins import (
     SlugCachedMixin,
     ArticleListMixin,
@@ -107,6 +108,29 @@ class NewsListView(ListView):
         context['seo_description'] = _("AI and technology news briefs.")
         context['seo_keywords'] = f"{_('technology news')},{_('AI news')},{blog_setting.site_keywords}"
         context['linktype'] = LinkShowType.L
+        return context
+
+
+class NewsDetailView(DetailView):
+    """Display a collected news item without sending readers off-site."""
+
+    template_name = 'blog/news_detail.html'
+    context_object_name = 'news_item'
+    pk_url_kwarg = 'news_id'
+
+    def get_queryset(self):
+        return NewsItem.objects.filter(is_visible=True)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        blog_setting = get_blog_setting()
+        context['seo_title'] = f'{self.object.title} | {blog_setting.get_site_name()}'
+        context['seo_description'] = self.object.summary
+        context['seo_keywords'] = f'{self.object.tags},{blog_setting.site_keywords}'
+        context['news_content_html'] = mark_safe(
+            sanitize_html(self.object.content)
+        )
+        context['linktype'] = LinkShowType.P
         return context
 
 

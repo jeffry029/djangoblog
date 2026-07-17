@@ -16,15 +16,17 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError
+from django.db.models import Q
 from django.utils import timezone
 
 from blog.models import Article, Category, NewsItem, Tag
 from djangoblog.indexnow import notify_indexnow_articles
-from djangoblog.utils import cache
+from djangoblog.utils import cache, sanitize_html
 
 
 logger = logging.getLogger(__name__)
 AIHOT_URL = 'https://aihot.virxact.com/'
+AIHOT_FEED_URL = urljoin(AIHOT_URL, 'feed.xml')
 DEFAULT_COLLECTOR_PROXY_URL = 'http://127.0.0.1:7890'
 
 
@@ -234,6 +236,72 @@ def parse_aihot_items(html, base_url=AIHOT_URL):
     return items
 
 
+def parse_aihot_feed(xml_text):
+    root = ET.fromstring(xml_text)
+    items = []
+
+    for node in root.findall('.//channel/item'):
+        title = normalize_text(child_text(node, 'title'))
+        source_url = normalize_text(child_text(node, 'link'))
+        if not title or not source_url:
+            continue
+
+        description = child_text(node, 'description')
+        original_url_match = re.search(
+            r'阅读原文[：:]\s*(https?://\S+)',
+            description,
+        )
+        summary = re.split(
+            r'\n\s*\n\s*(?:🔗\s*)?阅读原文[：:]',
+            description,
+            maxsplit=1,
+        )[0].strip()
+        author = child_text(node, 'author')
+        source_name_match = re.search(r'\((.+)\)\s*$', author)
+        content = clean_aihot_content(child_text(node, 'encoded'), source_url)
+
+        item = {
+            'title': title[:300],
+            'summary': summary[:1200],
+            'source': 'aihot',
+            'source_name': normalize_text(
+                source_name_match.group(1) if source_name_match else author
+            )[:120],
+            'source_url': source_url,
+            'original_url': (
+                original_url_match.group(1).strip()[:1000]
+                if original_url_match else ''
+            ),
+            'tags': normalize_text(child_text(node, 'category'))[:300],
+            'published_at': normalize_model_datetime(
+                parse_datetime(child_text(node, 'pubDate'))
+            ),
+        }
+        if content:
+            item['content'] = content
+        items.append(item)
+
+    return items
+
+
+def clean_aihot_content(content, base_url=AIHOT_URL):
+    if not content:
+        return ''
+
+    soup = BeautifulSoup(content, 'html.parser')
+    for element in soup.select('script, style'):
+        element.decompose()
+    for paragraph in soup.find_all('p'):
+        if '本文由 AI HOT 聚合整理' in paragraph.get_text(' ', strip=True):
+            paragraph.decompose()
+    for element in soup.find_all(href=True):
+        element['href'] = urljoin(base_url, element['href'])
+        element['rel'] = 'noopener nofollow'
+    for element in soup.find_all(src=True):
+        element['src'] = urljoin(base_url, element['src'])
+    return sanitize_html(str(soup)).strip()
+
+
 def normalize_news_tags(tags):
     normalized = []
     for tag in tags:
@@ -255,13 +323,18 @@ def normalize_news_tags(tags):
 def collect_aihot_news(limit=30, hours=None):
     result = CollectorResult()
     try:
-        html = fetch_url(AIHOT_URL)
+        xml_text = fetch_url(AIHOT_FEED_URL)
     except FetchUrlError as error:
         logger.error('Failed to fetch AI HOT news: %s', error)
         result.failed += 1
         return result
 
-    items = parse_aihot_items(html)[:limit]
+    try:
+        items = parse_aihot_feed(xml_text)[:limit]
+    except Exception as error:
+        logger.error('Failed to parse AI HOT feed: %s', summarize_exception(error))
+        result.failed += 1
+        return result
     cutoff = timezone.now() - timezone.timedelta(hours=hours) if hours else None
 
     for item in items:
@@ -270,10 +343,27 @@ def collect_aihot_news(limit=30, hours=None):
             continue
         try:
             source_url_hash = hash_url(item['source_url'])
-            _, created = NewsItem.objects.update_or_create(
+            existing = NewsItem.objects.filter(
                 source_url_hash=source_url_hash,
-                defaults=item,
-            )
+            ).only('content', 'tags').first()
+            if not existing and item.get('original_url'):
+                existing = NewsItem.objects.filter(
+                    Q(original_url=item['original_url'])
+                    | Q(source_url=item['original_url'])
+                ).only('content', 'tags').first()
+            if existing and existing.content and not item.get('content'):
+                item['content'] = existing.content
+            if existing and existing.tags:
+                item['tags'] = existing.tags
+
+            if existing:
+                for field, value in item.items():
+                    setattr(existing, field, value)
+                existing.save()
+                created = False
+            else:
+                NewsItem.objects.create(**item)
+                created = True
             if created:
                 result.created += 1
             else:

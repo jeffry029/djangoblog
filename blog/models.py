@@ -3,11 +3,13 @@ import re
 import hashlib
 import random
 from abc import abstractmethod
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
+from django.utils.html import strip_tags
 from django.utils.timezone import now
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
@@ -387,11 +389,13 @@ class NewsItem(models.Model):
 
     title = models.CharField('标题', max_length=300)
     summary = models.TextField('摘要', blank=True, default='')
+    content = models.TextField('正文', blank=True, default='')
     reason = models.TextField('推荐理由', blank=True, default='')
     source = models.CharField('来源', max_length=50, choices=SOURCE_CHOICES, default='aihot')
     source_name = models.CharField('来源名称', max_length=120, blank=True, default='')
-    source_url = models.URLField('原文链接', max_length=1000)
-    source_url_hash = models.CharField('原文链接哈希', max_length=64, unique=True, blank=True, default='')
+    source_url = models.URLField('采集来源链接', max_length=1000)
+    source_url_hash = models.CharField('采集来源链接哈希', max_length=64, unique=True, blank=True, default='')
+    original_url = models.URLField('原文链接', max_length=1000, blank=True, default='')
     tags = models.CharField('标签', max_length=300, blank=True, default='')
     published_at = models.DateTimeField('发布时间', null=True, blank=True)
     fetched_at = models.DateTimeField('抓取时间', default=now)
@@ -408,6 +412,25 @@ class NewsItem(models.Model):
 
     def __str__(self):
         return self.title
+
+    def get_absolute_url(self):
+        return reverse('blog:news_detail', kwargs={'news_id': self.id})
+
+    def has_detail_content(self):
+        return bool(strip_tags(self.content or '').strip())
+
+    def get_display_url(self):
+        return self.get_absolute_url() if self.has_detail_content() else self.source_url
+
+    def get_aihot_url(self):
+        try:
+            hostname = (urlparse(self.source_url).hostname or '').lower()
+        except ValueError:
+            return ''
+        return self.source_url if hostname == 'aihot.virxact.com' else ''
+
+    def get_original_url(self):
+        return self.original_url or ('' if self.get_aihot_url() else self.source_url)
 
     def save(self, *args, **kwargs):
         self.source_url_hash = hashlib.sha256(self.source_url.encode('utf-8')).hexdigest()

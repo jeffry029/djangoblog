@@ -10,32 +10,48 @@
 {% endblock %}
 
 {% block content %}
-    <div class="editorial-shell mx-auto w-full max-w-4xl px-4 pb-20 pt-24 md:px-8">
-        <main class="min-w-0">
+    <div class="editorial-shell mx-auto grid max-w-container-max grid-cols-1 gap-6 px-4 pb-20 pt-24 md:px-8 lg:grid-cols-12 lg:gap-8">
+        <main class="min-w-0 lg:col-span-8">
             <article class="editorial-detail-card rounded-lg border border-border/40 bg-card p-6 shadow-card md:p-8">
                 <a href="{% url 'blog:news' %}" class="mb-6 inline-flex items-center gap-2 text-[13px] font-semibold text-muted-foreground transition-colors hover:text-primary-600">
                     <span aria-hidden="true">&larr;</span>
                     {% trans 'AI News' %}
                 </a>
 
-                <h1 class="m-0 font-headline text-[30px] font-bold leading-tight text-primary-600 md:text-4xl">
+                <h1 class="m-0 mb-6 font-headline text-[32px] font-bold leading-tight text-primary-600 md:text-4xl">
                     {{ news_item.title }}
                 </h1>
 
-                <div class="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 text-[13px] font-medium text-muted-foreground">
-                    <span>{{ news_item.source_name|default:news_item.get_source_display }}</span>
-                    {% if news_item.published_at %}
-                        <span>&middot;</span>
+                {% if news_item.published_at %}
+                    <div class="mb-8 flex flex-wrap items-center gap-4">
+                        <span class="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground">
+                            <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
                         <time datetime="{{ news_item.published_at|date:'c' }}">{{ news_item.published_at|date:"Y-m-d H:i" }}</time>
-                    {% endif %}
-                </div>
-
-                {% if news_item.summary %}
-                    <section class="my-8 rounded-lg border border-primary-600/15 bg-secondary/50 p-4">
-                        <p class="m-0 mb-2 text-[12px] font-semibold text-primary-600">{% trans 'AI summary' %}</p>
-                        <p class="m-0 text-sm leading-7 text-foreground">{{ news_item.summary }}</p>
-                    </section>
+                        </span>
+                    </div>
                 {% endif %}
+
+                <section class="mb-8 rounded-lg border border-primary-600/15 bg-secondary/50 p-4">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-[13px] font-medium text-muted-foreground">
+                        <span>{% trans 'Source' %}: {{ news_item.source_name|default:news_item.get_source_display }}</span>
+                        {% if news_item.summary %}<span>{% trans 'AI summary' %}</span>{% endif %}
+                        {% if news_item.get_original_url %}
+                            <a href="{{ news_item.get_original_url }}" target="_blank" rel="noopener nofollow" class="text-primary-600 hover:underline">
+                                {% trans 'Original link' %}
+                            </a>
+                        {% endif %}
+                        {% if news_item.get_aihot_url %}
+                            <a href="{{ news_item.get_aihot_url }}" target="_blank" rel="noopener nofollow" class="text-primary-600 hover:underline">
+                                AI HOT
+                            </a>
+                        {% endif %}
+                    </div>
+                    {% if news_item.summary %}
+                        <p class="mt-3 mb-0 text-sm leading-6 text-foreground">{{ news_item.summary }}</p>
+                    {% endif %}
+                </section>
 
                 <div class="entry-content max-w-none" itemprop="articleBody">
                     <div class="editorial-article-body article prose prose-slate dark:prose-invert max-w-none">
@@ -52,20 +68,13 @@
                         {% endfor %}
                     </div>
                 {% endif %}
-
-                <div class="mt-8 flex flex-wrap items-center gap-3 border-t border-border/30 pt-6 text-[13px] font-semibold">
-                    {% if news_item.get_original_url %}
-                        <a href="{{ news_item.get_original_url }}" target="_blank" rel="noopener nofollow" class="editorial-read-more">
-                            {% trans 'Original link' %}
-                        </a>
-                    {% endif %}
-                    {% if news_item.get_aihot_url %}
-                        <a href="{{ news_item.get_aihot_url }}" target="_blank" rel="noopener nofollow" class="editorial-read-more">
-                            AI HOT
-                        </a>
-                    {% endif %}
-                </div>
             </article>
         </main>
+
+        <aside class="editorial-sidebar lg:col-span-4">
+            <div class="space-y-6 lg:sticky lg:top-24">
+                {% load_sidebar user "p" %}
+            </div>
+        </aside>
     </div>
 {% endblock %}

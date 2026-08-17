@@ -110,6 +110,28 @@ via AI HOT · https://aihot.virxact.com/items/agent-runtime]]></description>
         self.assertNotIn('本文由 AI HOT', entries[0]['content'])
         self.assertEqual(entries[0]['published_at'].year, 2026)
 
+    def test_parse_aihot_feed_handles_html_summary_and_full_feed_content(self):
+        xml = """<?xml version="1.0" encoding="UTF-8"?>
+        <rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+          <channel><item>
+            <title><![CDATA[HTML feed item]]></title>
+            <link>https://aihot.virxact.com/items/html-feed-item</link>
+            <description><![CDATA[
+              <p>Summary paragraph with <strong>formatting</strong>.</p>
+              <p>🔗 <a href="https://example.com/original">阅读原文</a></p>
+              <p>via AIHOT · <a href="https://aihot.virxact.com/items/html-feed-item">detail</a></p>
+            ]]></description>
+            <content:encoded><![CDATA[<p>Full article body.</p>]]></content:encoded>
+            <pubDate>Fri, 17 Jul 2026 00:40:20 GMT</pubDate>
+          </item></channel>
+        </rss>"""
+
+        entry = parse_aihot_feed(xml)[0]
+
+        self.assertEqual(entry['summary'], 'Summary paragraph with formatting.')
+        self.assertEqual(entry['original_url'], 'https://example.com/original')
+        self.assertEqual(entry['content'], '<p>Full article body.</p>')
+
     def test_parse_aihot_items_ignores_tag_container_text(self):
         from blog.services.collectors import parse_aihot_items
 

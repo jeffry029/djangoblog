@@ -164,7 +164,7 @@ tail -f /var/log/supervisor/djangoblog-scheduler.err.log
 
 ### AI 快讯
 
-- 来源：`https://aihot.virxact.com/feed.xml`
+- 来源：`https://aihot.virxact.com/feed/full.xml`
 - 默认每轮最多抓取 `AIHOT_NEWS_LIMIT=30` 条
 - 摘要、可用正文、原文链接和 AI HOT permalink 写入 `NewsItem`；有正文走站内详情，无正文保持外部跳转
 

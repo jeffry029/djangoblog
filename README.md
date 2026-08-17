@@ -120,7 +120,7 @@ python scripts/export_mysql_to_sqlite.py --sqlite-path /root/project/djangoblog/
 
 AI 快讯当前抓取：
 
-- `https://aihot.virxact.com/feed.xml`
+- `https://aihot.virxact.com/feed/full.xml`
 
 流程更轻量：
 

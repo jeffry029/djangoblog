@@ -412,6 +412,7 @@ class NewsFeatureTest(TestCase):
         legacy.refresh_from_db()
         self.assertEqual(legacy.source_url, 'https://aihot.virxact.com/items/collected')
         self.assertEqual(legacy.original_url, 'https://example.com/collected')
+        self.assertEqual(legacy.content, '<p>Collected body.</p>')
         self.assertEqual(legacy.tags, 'Existing tag')
 
     @staticmethod

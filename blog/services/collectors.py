@@ -26,7 +26,9 @@ from djangoblog.utils import cache, sanitize_html
 
 logger = logging.getLogger(__name__)
 AIHOT_URL = 'https://aihot.virxact.com/'
-AIHOT_FEED_URL = urljoin(AIHOT_URL, 'feed.xml')
+# The regular feed contains summaries only; the full feed inlines content for
+# items that AI HOT explicitly allows to be redistributed.
+AIHOT_FEED_URL = urljoin(AIHOT_URL, 'feed/full.xml')
 DEFAULT_COLLECTOR_PROXY_URL = 'http://127.0.0.1:7890'
 
 
@@ -247,15 +249,7 @@ def parse_aihot_feed(xml_text):
             continue
 
         description = child_text(node, 'description')
-        original_url_match = re.search(
-            r'阅读原文[：:]\s*(https?://\S+)',
-            description,
-        )
-        summary = re.split(
-            r'\n\s*\n\s*(?:🔗\s*)?阅读原文[：:]',
-            description,
-            maxsplit=1,
-        )[0].strip()
+        summary, original_url = parse_aihot_description(description, source_url)
         author = child_text(node, 'author')
         source_name_match = re.search(r'\((.+)\)\s*$', author)
         content = clean_aihot_content(child_text(node, 'encoded'), source_url)
@@ -268,10 +262,7 @@ def parse_aihot_feed(xml_text):
                 source_name_match.group(1) if source_name_match else author
             )[:120],
             'source_url': source_url,
-            'original_url': (
-                original_url_match.group(1).strip()[:1000]
-                if original_url_match else ''
-            ),
+            'original_url': original_url[:1000],
             'tags': normalize_text(child_text(node, 'category'))[:300],
             'published_at': normalize_model_datetime(
                 parse_datetime(child_text(node, 'pubDate'))
@@ -282,6 +273,42 @@ def parse_aihot_feed(xml_text):
         items.append(item)
 
     return items
+
+
+def parse_aihot_description(description, base_url=AIHOT_URL):
+    """Extract plain summary text and the original link from AI HOT HTML."""
+    raw_description = description or ''
+    soup = BeautifulSoup(raw_description, 'html.parser')
+    original_url = ''
+
+    for link in soup.find_all('a', href=True):
+        if '阅读原文' in normalize_text(link.get_text(' ', strip=True)):
+            original_url = urljoin(base_url, link['href']).strip()
+            break
+
+    # AI HOT appends these metadata paragraphs after the actual summary.
+    for element in soup.find_all(['p', 'li']):
+        text = normalize_text(element.get_text(' ', strip=True))
+        if '阅读原文' in text or re.match(r'^via\s+AI\s*HOT\b', text, re.I):
+            element.decompose()
+
+    plain_text = normalize_text(soup.get_text(' ', strip=True))
+    plain_text = re.sub(r'\s+([,.;:!?，。；：！？])', r'\1', plain_text)
+    if not original_url:
+        original_url_match = re.search(
+            r'阅读原文[：:]\s*(https?://\S+)',
+            plain_text,
+        )
+        if original_url_match:
+            original_url = original_url_match.group(1).rstrip('。.,，')
+
+    summary = re.split(
+        r'\s+(?:🔗\s*)?阅读原文[：:]\s*https?://\S+|\s+via\s+AI\s*HOT\b.*$',
+        plain_text,
+        maxsplit=1,
+        flags=re.I,
+    )[0].strip()
+    return summary[:1200], original_url
 
 
 def clean_aihot_content(content, base_url=AIHOT_URL):

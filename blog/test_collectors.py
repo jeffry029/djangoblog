@@ -21,6 +21,7 @@ from blog.services.collectors import (
     parse_feed_entries,
     parse_feed_configs,
     parse_feed_list,
+    rewrite_article,
     should_log_collector_tracebacks,
     sort_feed_entries,
 )
@@ -295,6 +296,31 @@ class FeedCollectorConfigTest(SimpleTestCase):
 
 
 class FeedCollectorPublishingTest(SimpleTestCase):
+    @patch.dict(os.environ, {
+        'OPENAI_API_KEY': 'test-key',
+        'OPENAI_BASE_URL': 'https://llm.example/v1',
+        'BLOG_LLM_MODEL': 'test-model',
+    }, clear=True)
+    @patch('openai.OpenAI')
+    def test_rewrite_article_uses_compatible_default_user_agent(self, openai_mock):
+        openai_mock.return_value.chat.completions.create.return_value = SimpleNamespace(
+            choices=[SimpleNamespace(message=SimpleNamespace(content='{"title_zh": "测试", "body_zh": "正文"}'))],
+            usage=None,
+        )
+
+        result = rewrite_article({
+            'title': 'HTTP client compatibility',
+            'summary': 'Test the configured user agent.',
+            'url': 'https://example.com/http-client-compatibility',
+        })
+
+        self.assertEqual(result['body_zh'], '正文')
+        openai_mock.assert_called_once_with(
+            api_key='test-key',
+            base_url='https://llm.example/v1',
+            default_headers={'User-Agent': 'curl/8.5.0'},
+        )
+
     @patch('blog.services.collectors.Tag.objects.get_or_create')
     @patch('blog.services.collectors.Article.objects.create')
     @patch('blog.services.collectors.Category.objects.get_or_create')

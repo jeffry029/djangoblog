@@ -63,6 +63,7 @@ NPM_REGISTRY=https://registry.npmmirror.com/
 OPENAI_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
 OPENAI_API_KEY=change-me
 BLOG_LLM_MODEL=glm-5.1
+OPENAI_USER_AGENT=curl/8.5.0
 
 TECH_ARTICLE_LIMIT=5
 AIHOT_NEWS_LIMIT=30
@@ -81,7 +82,7 @@ GUNICORN_THREADS=4
 - `DJANGOBLOG_ENV_FILE`：Supervisor 启动时加载的 `.env`
 - `DJANGOBLOG_PYTHON`、`DJANGOBLOG_GUNICORN`：宿主机 Python / Gunicorn 路径
 - `BUILD_FRONTEND=True`：首次部署或前端有变更时推荐开启
-- `OPENAI_*`：控制技术文章的 LLM 改写
+- `OPENAI_*`：控制技术文章的 LLM 改写；`OPENAI_USER_AGENT` 可兼容拦截 OpenAI SDK 默认标识的中转服务
 - `COLLECTOR_INTERVAL=1800`：每 1800 秒跑一轮采集
 - `COLLECTOR_PROXY_URL`：采集直连失败后的代理 fallback；设为空可禁用
 - `COLLECTOR_LOG_TRACEBACKS`：生产默认不输出采集/LLM 完整 traceback；排查采集问题时可临时设为 `True`

@@ -30,6 +30,7 @@ AIHOT_URL = 'https://aihot.virxact.com/'
 # items that AI HOT explicitly allows to be redistributed.
 AIHOT_FEED_URL = urljoin(AIHOT_URL, 'feed/full.xml')
 DEFAULT_COLLECTOR_PROXY_URL = 'http://127.0.0.1:7890'
+DEFAULT_LLM_USER_AGENT = 'curl/8.5.0'
 
 
 class FetchUrlError(Exception):
@@ -513,9 +514,14 @@ def rewrite_article(entry):
 
     try:
         from openai import OpenAI
+        user_agent = (
+            os.environ.get('OPENAI_USER_AGENT', DEFAULT_LLM_USER_AGENT).strip()
+            or DEFAULT_LLM_USER_AGENT
+        )
         client = OpenAI(
             api_key=api_key,
             base_url=os.environ.get('OPENAI_BASE_URL') or None,
+            default_headers={'User-Agent': user_agent},
         )
         response = client.chat.completions.create(
             model=os.environ.get('BLOG_LLM_MODEL', 'gpt-4o-mini'),

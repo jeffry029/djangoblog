@@ -31,6 +31,7 @@ AIHOT_URL = 'https://aihot.virxact.com/'
 AIHOT_FEED_URL = urljoin(AIHOT_URL, 'feed/full.xml')
 DEFAULT_COLLECTOR_PROXY_URL = 'http://127.0.0.1:7890'
 DEFAULT_LLM_USER_AGENT = 'curl/8.5.0'
+MIN_REWRITTEN_ARTICLE_LENGTH = 300
 
 
 class FetchUrlError(Exception):
@@ -484,8 +485,8 @@ def collect_tech_articles(limit=5, feeds=None, hours=None):
         if not rewritten:
             result.skipped += 1
             continue
-        if not normalize_rewritten_article(rewritten).get('body_zh'):
-            logger.warning('Skipping article with invalid bilingual rewrite: %s', entry['url'])
+        if not is_publishable_rewrite(rewritten):
+            logger.warning('Skipping article with invalid or incomplete rewrite: %s', entry['url'])
             result.skipped += 1
             continue
         try:
@@ -578,6 +579,12 @@ def parse_rewritten_article(content):
     try:
         data = json.loads(raw)
     except json.JSONDecodeError:
+        # The collector asks for a JSON object. A malformed object usually means
+        # an unescaped quote in generated code; publishing it as Markdown exposes
+        # the whole broken payload to readers.
+        if raw.startswith('{'):
+            logger.warning('Discarding malformed JSON response from article writer')
+            return {}
         title = extract_markdown_title(raw)
         body = strip_leading_markdown_title(raw, title) if title else raw
         return {
@@ -610,6 +617,22 @@ def normalize_rewritten_article(rewritten):
         'body_en': (rewritten.get('body_en') or '').strip(),
         'seo_description_en': normalize_text(rewritten.get('seo_description_en') or '')[:300],
     }
+
+
+def is_publishable_rewrite(rewritten):
+    normalized = normalize_rewritten_article(rewritten)
+    title = normalized.get('title_zh') or extract_markdown_title(
+        normalized.get('body_zh') or ''
+    )
+    body = strip_source_link_lines(normalized.get('body_zh') or '')
+    body = strip_leading_markdown_title(body, title)
+
+    return bool(
+        title
+        and len(body) >= MIN_REWRITTEN_ARTICLE_LENGTH
+        and re.search(r'^##\s+\S+', body, flags=re.M)
+        and '```' in body
+    )
 
 
 def publish_rewritten_article(entry, rewritten):

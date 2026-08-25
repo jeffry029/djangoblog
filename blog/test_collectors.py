@@ -14,6 +14,7 @@ from blog.services.collectors import (
     entry_published_at,
     fetch_url,
     is_before_cutoff,
+    is_publishable_rewrite,
     get_env_int,
     get_optional_env_int,
     normalize_feed_configs,
@@ -21,6 +22,7 @@ from blog.services.collectors import (
     parse_feed_entries,
     parse_feed_configs,
     parse_feed_list,
+    parse_rewritten_article,
     rewrite_article,
     should_log_collector_tracebacks,
     sort_feed_entries,
@@ -296,6 +298,42 @@ class FeedCollectorConfigTest(SimpleTestCase):
 
 
 class FeedCollectorPublishingTest(SimpleTestCase):
+    def test_is_publishable_rewrite_accepts_complete_technical_article(self):
+        body = (
+            '这段开场说明了变更的影响，以及团队为什么需要处理它。\n\n'
+            '## 在持续集成中增加检查\n\n'
+            '将规则接入现有流水线，先覆盖最容易遗漏的情况，再逐步完善例外。\n\n'
+            '```yaml\n'
+            'steps:\n'
+            '  - run: python scripts/check_alt_text.py pages/*.html\n'
+            '```\n\n'
+            '## 保留人工复核\n\n'
+            '自动化负责发现结构问题，人工根据页面任务判断说明是否足够。评审时应查看图片'
+            '周围的标题、按钮文案和当前操作的目标，确认替代文本传达的是用户完成任务所需'
+            '的信息，而不是图片的表面外观。对于趋势图、截图和流程图，还应提供紧邻的文'
+            '字结论或数据表，避免把关键信息只留在视觉内容中。这样既能保留自动化检查的'
+            '速度，也能让复杂案例在进入生产前得到有依据的判断。'
+        )
+
+        self.assertTrue(is_publishable_rewrite({
+            'title_zh': '为图片说明建立质量门',
+            'body_zh': body,
+        }))
+
+    def test_parse_rewritten_article_rejects_malformed_json_instead_of_publishing_it(self):
+        malformed = (
+            '{"title_zh":"中文标题","body_zh":"正文包含未转义的 "'
+            '引号，导致 JSON 无法解析"}'
+        )
+
+        self.assertEqual(parse_rewritten_article(malformed), {})
+
+    def test_is_publishable_rewrite_rejects_short_body(self):
+        self.assertFalse(is_publishable_rewrite({
+            'title_zh': '中文标题',
+            'body_zh': '只有一句话。',
+        }))
+
     @patch.dict(os.environ, {
         'OPENAI_API_KEY': 'test-key',
         'OPENAI_BASE_URL': 'https://llm.example/v1',

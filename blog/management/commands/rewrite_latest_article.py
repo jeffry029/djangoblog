@@ -7,6 +7,7 @@ from blog.services.collectors import (
     append_source_link,
     extract_markdown_title,
     extract_source_url,
+    is_publishable_rewrite,
     normalize_rewritten_article,
     rewrite_article,
     strip_leading_markdown_title,
@@ -44,8 +45,8 @@ class Command(BaseCommand):
             'summary': summary,
             'url': source_url,
         })
-        if not rewritten:
-            raise CommandError('LLM 未返回可用内容')
+        if not is_publishable_rewrite(rewritten):
+            raise CommandError('LLM 未返回符合发布要求的内容')
 
         rewritten = normalize_rewritten_article(rewritten)
         title = rewritten.get('title_zh') or extract_markdown_title(rewritten.get('body_zh', '')) or article.title
